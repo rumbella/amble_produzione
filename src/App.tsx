@@ -2583,78 +2583,6 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
         )}
       </div>
       
-      {/* Floating Header */}
-      <header className="absolute top-8 left-0 right-0 z-40 w-full">
-        <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-10 flex justify-between items-center h-12">
-          {/* Left Column: Back button or Logo mark */}
-          <div className="flex items-center min-w-[120px] h-full">
-            {!isHome && (
-              <button 
-                onClick={handleBack}
-                className="p-2 -ml-2 text-white/80 hover:text-white hover:scale-105 transition-all flex items-center gap-2 font-display text-xs tracking-widest uppercase cursor-pointer bg-black/20 backdrop-blur-md rounded-full px-4 border border-white/5"
-              >
-                <LongArrowLeft size={14} />
-                <span>Indietro</span>
-              </button>
-            )}
-          </div>
-
-          {/* Center Column: Desktop Navigation Menu */}
-          <nav className="hidden md:flex items-center gap-6 h-full font-display text-[11px] tracking-widest uppercase text-white/60 bg-black/45 backdrop-blur-xl border border-white/10 rounded-full px-8 py-2 shadow-lg">
-            <button 
-              onClick={() => navigate('/')} 
-              className={`hover:text-white transition-colors cursor-pointer ${location.pathname === '/' ? 'text-white font-bold' : ''}`}
-            >
-              DIRETTA
-            </button>
-            <button 
-              onClick={() => navigate('/playlist')} 
-              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/playlist') ? 'text-white font-bold' : ''}`}
-            >
-              PLAYLIST
-            </button>
-            <button 
-              onClick={() => navigate('/podcast')} 
-              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/podcast') ? 'text-white font-bold' : ''}`}
-            >
-              PODCAST
-            </button>
-            <button 
-              onClick={() => navigate('/djset')} 
-              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/djset') ? 'text-white font-bold' : ''}`}
-            >
-              DJ SET
-            </button>
-            <button 
-              onClick={() => navigate('/programmi')} 
-              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/programmi') ? 'text-white font-bold' : ''}`}
-            >
-              PROGRAMMI
-            </button>
-            <button 
-              onClick={() => navigate('/profile')} 
-              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/profile') ? 'text-white font-bold' : ''}`}
-            >
-              PROFILO
-            </button>
-          </nav>
-
-          {/* Center Column for Mobile: Mobile Brand/Logo */}
-          <div className="flex md:hidden justify-center flex-1 max-w-[200px] h-full items-center">
-            <span className="nav-text text-center text-white tracking-[0.2em] font-bold text-sm">
-              RADIO AMBLÈ
-            </span>
-          </div>
-          
-          {/* Right Column: Empty Spacer or Profile button */}
-          <div className="flex items-center justify-end min-w-[120px] h-full">
-            <span className="hidden md:inline nav-text text-white tracking-[0.2em] font-bold text-xs">
-              RADIO AMBLÈ
-            </span>
-          </div>
-        </div>
-      </header>
-
       {/* Pages */}
       <AnimatePresence custom={direction}>
         <motion.div
@@ -2776,8 +2704,80 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
         </motion.div>
       </AnimatePresence>
 
+      {/* Floating Header */}
+      <header className="absolute top-8 left-0 right-0 z-40 w-full">
+        <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-10 flex justify-between items-center h-12">
+          {/* Left Column: Back button and/or Logo mark */}
+          <div className="flex items-center gap-4 min-w-[200px] h-full">
+            {!isHome && (
+              <button 
+                onClick={handleBack}
+                className="p-2 -ml-2 text-white/80 hover:text-white hover:scale-105 transition-all flex items-center gap-2 font-space text-xs tracking-widest uppercase cursor-pointer bg-black/40 backdrop-blur-md rounded-full px-4 border border-white/10"
+              >
+                <ChevronLeft size={14} />
+                <span>Indietro</span>
+              </button>
+            )}
+            <span className="hidden md:inline text-white font-space tracking-[0.2em] font-black text-sm select-none">
+              RADIO AMBLÈ
+            </span>
+          </div>
+
+          {/* Center Column: Desktop Navigation Menu */}
+          <nav className="hidden md:flex items-center gap-6 h-full font-space text-[12px] font-bold tracking-widest uppercase text-white/80">
+            <button 
+              onClick={() => navigate('/')} 
+              className={`hover:text-white transition-colors cursor-pointer ${location.pathname === '/' ? 'text-white font-black border-b border-white' : ''}`}
+            >
+              DIRETTA
+            </button>
+            <button 
+              onClick={() => navigate('/playlist')} 
+              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/playlist') ? 'text-white font-black border-b border-white' : ''}`}
+            >
+              PLAYLIST
+            </button>
+            <button 
+              onClick={() => navigate('/podcast')} 
+              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/podcast') ? 'text-white font-black border-b border-white' : ''}`}
+            >
+              PODCAST
+            </button>
+            <button 
+              onClick={() => navigate('/djset')} 
+              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/djset') ? 'text-white font-black border-b border-white' : ''}`}
+            >
+              DJ SET
+            </button>
+            <button 
+              onClick={() => navigate('/programmi')} 
+              className={`hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/programmi') ? 'text-white font-black border-b border-white' : ''}`}
+            >
+              PROGRAMMI
+            </button>
+          </nav>
+
+          {/* Center Column for Mobile: Mobile Brand/Logo */}
+          <div className="flex md:hidden justify-center flex-1 max-w-[200px] h-full items-center">
+            <span className="text-center text-white font-space tracking-[0.2em] font-black text-sm">
+              RADIO AMBLÈ
+            </span>
+          </div>
+          
+          {/* Right Column: Profile or Login dynamic button */}
+          <div className="flex items-center justify-end min-w-[200px] h-full">
+            <button 
+              onClick={() => navigate('/profile')}
+              className={`hidden md:inline font-space text-[12px] font-bold tracking-widest uppercase hover:text-white transition-colors cursor-pointer ${location.pathname.startsWith('/profile') ? 'text-white font-black border-b border-white' : 'text-white/80'}`}
+            >
+              {user ? 'PROFILO' : 'LOGIN'}
+            </button>
+          </div>
+        </div>
+      </header>
+
       {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[440px] h-[64px] bg-[#0c0c0e]/85 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.8)] flex items-center justify-around px-4">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[440px] h-[64px] flex items-center justify-around px-2">
         <button 
           onClick={() => navigate('/')}
           className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname === '/' ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
