@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Radio Amblè</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Codystar&family=Inter:wght@300;400;500;700;800;900&family=Space+Grotesk:wght@600;700;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0c0c0e" />
+    <link rel="icon" type="image/x-icon" href="https://radioamble-cdn.b-cdn.net/Nuova%20cartella%20(1)/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="https://radioamble-cdn.b-cdn.net/Nuova%20cartella%20(1)/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://radioamble-cdn.b-cdn.net/Nuova%20cartella%20(1)/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="https://radioamble-cdn.b-cdn.net/Nuova%20cartella%20(1)/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://radioamble-cdn.b-cdn.net/Nuova%20cartella%20(1)/apple-touch-icon-180x180.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('error', function(event) {
+        console.error("Unhandle/Startup Error:", event.error);
+        var root = document.getElementById('root');
+        if (root) {
+          root.innerHTML = '<div style="padding: 20px; color: #ff4d4d; background-color: #111; min-height: 100vh; font-family: monospace; overflow: auto; box-sizing: border-box; text-align: left;"><h2 style="font-size: 20px; margin-bottom: 10px;">Oops! A startup error occurred:</h2><pre style="white-space: pre-wrap; word-break: break-all; background-color: #222; padding: 15px; border-radius: 4px; border: 1px solid #444; color: #f8f8f8; text-align: left; font-size: 14px; line-height: 1.5;">' + (event.error ? (event.error.stack || event.error.message) : event.message) + '</pre><button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background-color: #fff; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Reload App</button></div>';
+        }
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error("Unhandled Promise Rejection during startup:", event.reason);
+        var root = document.getElementById('root');
+        if (root) {
+          var details = event.reason ? (event.reason.stack || event.reason.message || event.reason) : 'Unknown Promise Rejection';
+          root.innerHTML = '<div style="padding: 20px; color: #ff4d4d; background-color: #111; min-height: 100vh; font-family: monospace; overflow: auto; box-sizing: border-box; text-align: left;"><h2 style="font-size: 20px; margin-bottom: 10px;">Oops! A promise rejection occurred during startup:</h2><pre style="white-space: pre-wrap; word-break: break-all; background-color: #222; padding: 15px; border-radius: 4px; border: 1px solid #444; color: #f8f8f8; text-align: left; font-size: 14px; line-height: 1.5;">' + details + '</pre><button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background-color: #fff; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Reload App</button></div>';
+        }
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
