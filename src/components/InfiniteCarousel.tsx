@@ -163,7 +163,7 @@ export function InfiniteCarousel({ items, type, onItemClick }: InfiniteCarouselP
             {type === 'podcast' && (
               <div className="relative w-full aspect-[1.58] rounded-2xl md:rounded-[24px] overflow-hidden bg-[#181818] shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/5">
                 <img
-                  src={p.imageUrl || p.image || `https://picsum.photos/seed/${p.seed}/600`}
+                  src={p.imageUrl || `https://picsum.photos/seed/${p.seed}/600`}
                   alt=""
                   className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ease-out"
                   referrerPolicy="no-referrer"
@@ -175,7 +175,7 @@ export function InfiniteCarousel({ items, type, onItemClick }: InfiniteCarouselP
               p.id === 1 ? (
                 <div className="relative w-full aspect-[1.58] rounded-2xl md:rounded-[24px] overflow-hidden bg-transparent">
                   <img
-                    src={p.imageUrl || p.image || `https://picsum.photos/seed/${p.seed}/600`}
+                    src={p.imageUrl || `https://picsum.photos/seed/${p.seed}/600`}
                     alt=""
                     className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-700 ease-out"
                     referrerPolicy="no-referrer"
@@ -184,7 +184,7 @@ export function InfiniteCarousel({ items, type, onItemClick }: InfiniteCarouselP
               ) : (
                 <div className="relative w-full aspect-[1.58] rounded-2xl md:rounded-[24px] overflow-hidden bg-[#181818] shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/5">
                   <img
-                    src={p.imageUrl || p.image || `https://picsum.photos/seed/${p.seed}/600`}
+                    src={p.imageUrl || `https://picsum.photos/seed/${p.seed}/600`}
                     alt=""
                     className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ease-out"
                     referrerPolicy="no-referrer"

@@ -465,9 +465,8 @@ function TracklistFeaturedSlot({
       {/* Grid: 1 col on mobile, 2 cols on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tracks.map((track, i) => {
-          const t = track as any;
-          const trackAudio = t.audioUrl || t.audio;
-          const trackImage = t.imageUrl || t.image;
+          const trackAudio = track.audioUrl;
+          const trackImage = track.imageUrl;
           const isCurrent = currentTrackUrl === trackAudio;
           const isCurrentPlaying = isCurrent && isPlaying;
           return (
