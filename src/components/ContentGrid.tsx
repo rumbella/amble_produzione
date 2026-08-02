@@ -1,34 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, VolumeX, MoreHorizontal, Share2, Heart, PlusCircle } from 'lucide-react';
+import { GridItem, FeaturedSlot } from '../types';
 
-// ==========================================
-// TYPES & INTERFACES (TypeScript)
-// ==========================================
-
-export interface GridItem {
-  id: string;
-  type: 'image' | 'video';
-  mediaUrl: string;
-  aspectRatio: number;
-  title?: string;
-  brandName?: string;
-  overflowMenu?: boolean;
-}
-
-export interface FeaturedSlot {
-  id: string;
-  type: 'adv' | 'promo' | 'djset' | 'podcast' | 'video_art' | 'tracklist';
-  isSponsored: boolean;
-  brandName?: string;
-  title: string;
-  subtitle?: string;
-  videoUrl?: string;
-  expiresAt?: string;
-  isHighlight?: boolean; // dj set della settimana, va nel primo slot
-  isFirstTracklist?: boolean;
-  tracks?: any[];
-}
+export type { GridItem, FeaturedSlot };
 
 export interface ContentGridProps {
   items: GridItem[];
@@ -490,12 +465,15 @@ function TracklistFeaturedSlot({
       {/* Grid: 1 col on mobile, 2 cols on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tracks.map((track, i) => {
-          const isCurrent = currentTrackUrl === track.audio;
+          const t = track as any;
+          const trackAudio = t.audioUrl || t.audio;
+          const trackImage = t.imageUrl || t.image;
+          const isCurrent = currentTrackUrl === trackAudio;
           const isCurrentPlaying = isCurrent && isPlaying;
           return (
             <div
               key={i}
-              onClick={() => togglePlay?.(track.audio)}
+              onClick={() => togglePlay?.(trackAudio)}
               className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-300 group cursor-pointer ${
                 isCurrent 
                   ? 'border-white/20 bg-white/[0.06] shadow-[0_4px_20px_rgba(255,46,85,0.15)]' 
@@ -505,7 +483,7 @@ function TracklistFeaturedSlot({
               <div className="flex items-center gap-4 min-w-0 flex-1">
                 <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#1a1a1a] border border-white/5 shadow-md">
                   <img
-                    src={track.image}
+                    src={trackImage}
                     alt=""
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
                     referrerPolicy="no-referrer"

@@ -14,27 +14,7 @@
  *    - ID 6: "Music&Talk - Albi Scotti" (PUNTATA 6) - CDN image & audio MP3
  */
 
-export interface ProgramItem {
-  id: number;
-  title: string;
-  author: string;
-  time: string;
-  type: string;
-  targetId: number | null;
-  tag: string;
-  teaser: string;
-  image: string;
-} // TODO: move to types.ts
-
-export interface MusikTalkEpisode {
-  id: number;
-  title: string;
-  image: string;
-  audio: string;
-  duration: string;
-  author: string;
-  tag: string;
-} // TODO: move to types.ts
+import { ProgramItem, MusikTalkEpisode } from '../types';
 
 export const PROGRAMMI_ITEMS: ProgramItem[] = [
   {
@@ -46,7 +26,7 @@ export const PROGRAMMI_ITEMS: ProgramItem[] = [
     targetId: 5,
     tag: 'PODCAST ESCLUSIVO',
     teaser: "L'energia irriverente e imprevedibile del talk show di Stiv Tirella con interviste sorprendenti a ospiti speciali.",
-    image: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
+    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
   },
   {
     id: 5,
@@ -57,7 +37,7 @@ export const PROGRAMMI_ITEMS: ProgramItem[] = [
     targetId: null,
     tag: 'TALK & DJSET',
     teaser: "Interviste intime, storie indimenticabili ed eccezionali selezioni musicali con i padri fondatori e i protagonisti della scena clubbing.",
-    image: 'https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(5).jpg',
+    imageUrl: 'https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(5).jpg',
   }
 ];
 
@@ -65,8 +45,8 @@ export const MUSIK_TALK_EPISODES: MusikTalkEpisode[] = [
   {
     id: 1,
     title: "Music&Talk - Francesco Farfa",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(14).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(14).jpg",
+    audioUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
     duration: "1:15:30",
     author: "Francesco Farfa",
     tag: "PUNTATA 1",
@@ -74,8 +54,8 @@ export const MUSIK_TALK_EPISODES: MusikTalkEpisode[] = [
   {
     id: 2,
     title: "Music&Talk - Ricky le Roy & Luca Pechino",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(9).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(9).jpg",
+    audioUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
     duration: "1:22:15",
     author: "Ricky le Roy & Luca Pechino",
     tag: "PUNTATA 2",
@@ -83,8 +63,8 @@ export const MUSIK_TALK_EPISODES: MusikTalkEpisode[] = [
   {
     id: 3,
     title: "Music&Talk - Slowaxx",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(15).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(15).jpg",
+    audioUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
     duration: "1:08:45",
     author: "Slowaxx",
     tag: "PUNTATA 3",
@@ -92,8 +72,8 @@ export const MUSIK_TALK_EPISODES: MusikTalkEpisode[] = [
   {
     id: 4,
     title: "Music&Talk - Thomas T.",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(17).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%235%20Thomas%20T.%20pres.%20Ottanio.mp3",
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(17).jpg",
+    audioUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%235%20Thomas%20T.%20pres.%20Ottanio.mp3",
     duration: "1:18:12",
     author: "Thomas T.",
     tag: "PUNTATA 4",
@@ -101,8 +81,8 @@ export const MUSIK_TALK_EPISODES: MusikTalkEpisode[] = [
   {
     id: 5,
     title: "Music&Talk - Alex Neri",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(10).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%232%20Alex%20Neri%20.mp3",
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(10).jpg",
+    audioUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%232%20Alex%20Neri%20.mp3",
     duration: "1:24:50",
     author: "Alex Neri",
     tag: "PUNTATA 5",
@@ -110,8 +90,8 @@ export const MUSIK_TALK_EPISODES: MusikTalkEpisode[] = [
   {
     id: 6,
     title: "Music&Talk - Albi Scotti",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(8).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%236%20Albi%20Scotti.mp3",
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(8).jpg",
+    audioUrl: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%236%20Albi%20Scotti.mp3",
     duration: "1:20:15",
     author: "Albi Scotti",
     tag: "PUNTATA 6",

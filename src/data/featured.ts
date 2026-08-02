@@ -33,7 +33,7 @@
  *    - slot-adv-expired (type: 'adv', isSponsored: true, expiresAt: '2024-12-31'): "Winter Selection 2025"
  */
 
-import { GridItem, FeaturedSlot } from '../components/ContentGrid';
+import { GridItem, FeaturedSlot } from '../types';
 
 export const HOMEPAGE_BACKGROUNDS = [
   "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1302.jpg",

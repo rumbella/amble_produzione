@@ -16,10 +16,11 @@ import { ContentGrid, MOCK_FEATURED_SLOTS } from './components/ContentGrid';
 // DATA IMPORTS & RE-EXPORTS (From src/data/)
 // ==========================================
 import { MUSIC_PLAYLISTS, PODCAST_ITEMS, getPodcastSongs, getPlaylistSongs } from './data/podcasts';
-import { DJSET_ITEMS, MOCK_SONGS, getDjSetSongs, type Song } from './data/djsets';
+import { DJSET_ITEMS, MOCK_SONGS, getDjSetSongs } from './data/djsets';
 import { HOMEPAGE_BACKGROUNDS, RANDOM_BACKGROUNDS, getRandomBackground } from './data/featured';
 import { PLAYLIST_SPOTLIGHT_TRACKS, PODCAST_SPOTLIGHT_TRACKS, DJSET_SPOTLIGHT_TRACKS, PROGRAMMI_SPOTLIGHT_TRACKS } from './data/tracks';
 import { PROGRAMMI_ITEMS, MUSIK_TALK_EPISODES } from './data/shows';
+import { Song } from './types';
 
 export {
   MUSIC_PLAYLISTS,
@@ -558,6 +559,7 @@ function PinterestCard({
   tag,
   subtitle,
   image,
+  imageUrl,
   seed,
   isFull,
   index,
@@ -572,6 +574,7 @@ function PinterestCard({
   tag: string;
   subtitle?: string;
   image?: string;
+  imageUrl?: string;
   seed?: any;
   isFull: boolean;
   index: number;
@@ -580,6 +583,8 @@ function PinterestCard({
   key?: any;
   spanClass?: string;
 }) {
+  const cardImg = imageUrl || image;
+
   // Uniform aspect ratio to prevent vertical stretching and empty spaces
   const getAspectClass = (full: boolean, idx: number) => {
     if (full) {
@@ -600,9 +605,9 @@ function PinterestCard({
       {/* Image Thumb (with hover effects) */}
       <div className={`relative w-full ${aspectClass} overflow-hidden bg-[#181818] shrink-0 border-b border-white/5`}>
         {/* Full Image or Collage */}
-        {image ? (
+        {cardImg ? (
           <img
-            src={image}
+            src={cardImg}
             alt=""
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             referrerPolicy="no-referrer"
@@ -735,12 +740,14 @@ function SpotlightTracksSection({
       {/* Grid of tracks matching the reference image */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tracks.map((track, i) => {
-          const isCurrent = currentTrackUrl === track.audio;
+          const trackAudio = track.audioUrl || track.audio;
+          const trackImage = track.imageUrl || track.image;
+          const isCurrent = currentTrackUrl === trackAudio;
           const isCurrentPlaying = isCurrent && isPlaying;
           return (
             <div
               key={i}
-              onClick={() => togglePlay(track.audio)}
+              onClick={() => togglePlay(trackAudio)}
               className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-300 group cursor-pointer ${
                 isCurrent 
                   ? 'border-white/20 bg-white/[0.06] shadow-[0_4px_20px_rgba(255,46,85,0.15)]' 
@@ -752,7 +759,7 @@ function SpotlightTracksSection({
                 {/* Square image with overlay play button */}
                 <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#1a1a1a] border border-white/5 shadow-md">
                   <img
-                    src={track.image}
+                    src={trackImage}
                     alt=""
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
                     referrerPolicy="no-referrer"
@@ -832,12 +839,12 @@ function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
                 teaser={playlist.teaser}
                 tag={playlist.tag || 'CONSIGLIATO'}
                 subtitle={playlist.subtitle || "Playlist d'autore"}
-                image={playlist.image}
+                imageUrl={playlist.imageUrl}
                 seed={playlist.seed}
                 isFull={false}
                 index={idx}
                 onClick={() => navigate('/playlist/' + playlist.id)}
-                isPlaylistCollage={!playlist.image}
+                isPlaylistCollage={!playlist.imageUrl}
                 spanClass="col-span-1"
               />
             );
@@ -873,12 +880,12 @@ function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
                     teaser={playlist.teaser}
                     tag={playlist.tag || 'CONSIGLIATO'}
                     subtitle={playlist.subtitle || "Playlist d'autore"}
-                    image={playlist.image}
+                    imageUrl={playlist.imageUrl}
                     seed={playlist.seed}
                     isFull={false}
                     index={idx}
                     onClick={() => navigate('/playlist/' + playlist.id)}
-                    isPlaylistCollage={!playlist.image}
+                    isPlaylistCollage={!playlist.imageUrl}
                     spanClass="col-span-1"
                   />
                 );
@@ -928,7 +935,7 @@ function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
                 teaser={podcast.teaser}
                 tag={podcast.tag || 'PODCAST'}
                 subtitle={podcast.subtitle || 'Audio On-Demand'}
-                image={podcast.image}
+                imageUrl={podcast.imageUrl}
                 seed={podcast.seed}
                 isFull={false}
                 index={idx}
@@ -968,7 +975,7 @@ function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
                     teaser={podcast.teaser}
                     tag={podcast.tag || 'PODCAST'}
                     subtitle={podcast.subtitle || 'Audio On-Demand'}
-                    image={podcast.image}
+                    imageUrl={podcast.imageUrl}
                     seed={podcast.seed}
                     isFull={false}
                     index={idx}
@@ -1005,7 +1012,7 @@ function DjSetView({ isPlaying, togglePlay, currentTrackUrl }: any) {
     return {
       id: String(item.id),
       type: 'image' as const,
-      mediaUrl: item.image,
+      mediaUrl: item.imageUrl,
       aspectRatio,
       title: item.title,
       brandName: item.tag || 'DJ SET',
@@ -1090,7 +1097,7 @@ function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
                 teaser={prog.teaser}
                 tag={prog.tag}
                 subtitle={prog.time}
-                image={prog.image}
+                imageUrl={prog.imageUrl}
                 isFull={false}
                 index={idx}
                 onClick={() => {
@@ -1137,7 +1144,7 @@ function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
                     teaser={prog.teaser}
                     tag={prog.tag}
                     subtitle={prog.time}
-                    image={prog.image}
+                    imageUrl={prog.imageUrl}
                     isFull={false}
                     index={idx}
                     onClick={() => {
@@ -1221,10 +1228,10 @@ function MusikTalkView({ isPlaying, togglePlay, currentTrackUrl, userLikes, togg
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                 <button 
-                  onClick={() => togglePlay(MUSIK_TALK_EPISODES[0]?.audio)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && MUSIK_TALK_EPISODES.some(s => s.audio === currentTrackUrl) ? 'play-pulse' : ''}`}
+                  onClick={() => togglePlay(MUSIK_TALK_EPISODES[0]?.audioUrl)}
+                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && MUSIK_TALK_EPISODES.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
                 >
-                  {isPlaying && MUSIK_TALK_EPISODES.some(s => s.audio === currentTrackUrl) ? (
+                  {isPlaying && MUSIK_TALK_EPISODES.some(s => s.audioUrl === currentTrackUrl) ? (
                     <>
                       <Pause size={16} className="fill-black text-black" />
                       <span>PAUSA</span>
@@ -1284,10 +1291,10 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
 
   if (!ep) return null;
 
-  const bgUrl = ep.image;
+  const bgUrl = ep.imageUrl;
   const itemId = `musiktalk_ep:${ep.id}`;
   const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === ep.audio;
+  const trackIsPlaying = isPlaying && currentTrackUrl === ep.audioUrl;
 
   // Background videos pool
   const videosPool = [
@@ -1315,15 +1322,15 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
   };
 
   useEffect(() => {
-    if (currentTrackUrl !== ep.audio || !isPlaying) {
-      if (currentTrackUrl !== ep.audio) {
-        togglePlay(ep.audio);
+    if (currentTrackUrl !== ep.audioUrl || !isPlaying) {
+      if (currentTrackUrl !== ep.audioUrl) {
+        togglePlay(ep.audioUrl);
       } else if (!isPlaying) {
-        togglePlay(ep.audio);
+        togglePlay(ep.audioUrl);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ep.audio]);
+  }, [ep.audioUrl]);
 
   return (
     <motion.main
@@ -1384,7 +1391,7 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
               </button>
 
               <button 
-                onClick={() => togglePlay(ep.audio)}
+                onClick={() => togglePlay(ep.audioUrl)}
                 className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
                 aria-label={trackIsPlaying ? "Pause" : "Play"}
               >
@@ -1434,14 +1441,15 @@ function SinglePodcastEpisodeView({ isPlaying, togglePlay, userLikes, toggleLike
   const songsList = getPodcastSongs(Number(id));
   const song = songsList[sIndex];
   
-  const [fallbackBg] = useState(() => playlist?.image || getRandomBackground());
-  const bgUrl = song?.background || fallbackBg;
+  const [fallbackBg] = useState(() => playlist?.imageUrl || (playlist as any)?.image || getRandomBackground());
+  const bgUrl = song?.backgroundUrl || (song as any)?.background || fallbackBg;
 
   if (!playlist || !song) return null;
 
+  const songAudio = song.audioUrl || (song as any).audio;
   const itemId = `podcast_episode:${playlist.id}:${songIndex}`;
   const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === song.audio;
+  const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
   const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
 
   const goToPrev = () => {
@@ -1453,15 +1461,15 @@ function SinglePodcastEpisodeView({ isPlaying, togglePlay, userLikes, toggleLike
   };
 
   useEffect(() => {
-    if (currentTrackUrl !== song.audio || !isPlaying) {
-      if (currentTrackUrl !== song.audio) {
-        togglePlay(song.audio);
+    if (currentTrackUrl !== songAudio || !isPlaying) {
+      if (currentTrackUrl !== songAudio) {
+        togglePlay(songAudio);
       } else if (!isPlaying) {
-        togglePlay(song.audio);
+        togglePlay(songAudio);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.audio]);
+  }, [songAudio]);
 
   return (
     <motion.main
@@ -1520,7 +1528,7 @@ function SinglePodcastEpisodeView({ isPlaying, togglePlay, userLikes, toggleLike
               </button>
 
               <button 
-                onClick={() => togglePlay(song.audio)}
+                onClick={() => togglePlay(songAudio)}
                 className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
                 aria-label={trackIsPlaying ? "Pause" : "Play"}
               >
@@ -1577,7 +1585,7 @@ function SongRowItem({
 }: any) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
-  const isCurrent = currentTrackUrl === song.audio;
+  const isCurrent = currentTrackUrl === (song.audioUrl || song.audio);
   const isCurrentPlaying = isCurrent && isPlaying;
   
   const likeId = playlistType === 'musiktalk' 
@@ -1589,7 +1597,7 @@ function SongRowItem({
         : `playlist_song:${playlistId}:${index}`;
         
   const isLiked = userLikes?.includes(likeId) || false;
-  const thumbUrl = song.background || song.image || playlistImage;
+  const thumbUrl = song.backgroundUrl || song.background || song.imageUrl || song.image || playlistImage;
   
   const handleRowClick = () => {
     if (playlistType === 'musiktalk') {
@@ -1601,7 +1609,7 @@ function SongRowItem({
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onPlayToggle(song.audio);
+    onPlayToggle(song.audioUrl || song.audio);
   };
 
   const handleLikeClick = (e: React.MouseEvent) => {
@@ -1766,7 +1774,7 @@ function SinglePodcastView({ isPlaying, togglePlay, currentTrackUrl, userLikes, 
   const navigate = useNavigate();
   const playlist = PODCAST_ITEMS.find(p => p.id === Number(id));
   const songsList = getPodcastSongs(Number(id));
-  const [bgUrl] = useState(() => playlist?.image || getRandomBackground());
+  const [bgUrl] = useState(() => playlist?.imageUrl || (playlist as any)?.image || getRandomBackground());
 
   if (!playlist) return null;
 
@@ -1808,7 +1816,7 @@ function SinglePodcastView({ isPlaying, togglePlay, currentTrackUrl, userLikes, 
             {/* Left Cover Artwork */}
             <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border border-white/10 shrink-0 group">
               <img 
-                src={playlist.image} 
+                src={playlist.imageUrl || (playlist as any).image} 
                 alt="" 
                 className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
                 referrerPolicy="no-referrer"
@@ -1839,10 +1847,10 @@ function SinglePodcastView({ isPlaying, togglePlay, currentTrackUrl, userLikes, 
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                 <button 
-                  onClick={() => togglePlay(songsList[0]?.audio)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => s.audio === currentTrackUrl) ? 'play-pulse' : ''}`}
+                  onClick={() => togglePlay(songsList[0]?.audioUrl || (songsList[0] as any)?.audio)}
+                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => (s.audioUrl || (s as any).audio) === currentTrackUrl) ? 'play-pulse' : ''}`}
                 >
-                  {isPlaying && songsList.some(s => s.audio === currentTrackUrl) ? (
+                  {isPlaying && songsList.some(s => (s.audioUrl || (s as any).audio) === currentTrackUrl) ? (
                     <>
                       <Pause size={16} className="fill-black text-black" />
                       <span>PAUSA</span>
@@ -1881,7 +1889,7 @@ function SinglePodcastView({ isPlaying, togglePlay, currentTrackUrl, userLikes, 
                 onPlayToggle={togglePlay}
                 userLikes={userLikes}
                 onLikeToggle={toggleLike}
-                playlistImage={playlist.image}
+                playlistImage={playlist.imageUrl || (playlist as any).image}
                 author={playlist.author}
               />
             ))}
@@ -1897,7 +1905,7 @@ function SingleDjSetTrackView({ isPlaying, togglePlay, userLikes, toggleLike, cu
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
   const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.image || getRandomBackground());
+  const [bgUrl] = useState(() => playlist?.imageUrl || (playlist as any)?.image || getRandomBackground());
   
   const sIndex = Number(songIndex);
   const songsList = getDjSetSongs(Number(id));
@@ -1905,9 +1913,10 @@ function SingleDjSetTrackView({ isPlaying, togglePlay, userLikes, toggleLike, cu
 
   if (!playlist || !song) return null;
 
+  const songAudio = song.audioUrl || (song as any).audio;
   const itemId = `djset_track:${playlist.id}:${songIndex}`;
   const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === song.audio;
+  const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
   const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
 
   const goToPrev = () => {
@@ -1919,15 +1928,15 @@ function SingleDjSetTrackView({ isPlaying, togglePlay, userLikes, toggleLike, cu
   };
 
   useEffect(() => {
-    if (currentTrackUrl !== song.audio || !isPlaying) {
-      if (currentTrackUrl !== song.audio) {
-        togglePlay(song.audio);
+    if (currentTrackUrl !== songAudio || !isPlaying) {
+      if (currentTrackUrl !== songAudio) {
+        togglePlay(songAudio);
       } else if (!isPlaying) {
-        togglePlay(song.audio);
+        togglePlay(songAudio);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.audio]);
+  }, [songAudio]);
 
   return (
     <motion.main
@@ -1964,7 +1973,7 @@ function SingleDjSetTrackView({ isPlaying, togglePlay, userLikes, toggleLike, cu
             {playlist.id === 1 ? (
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-white/10 shrink-0">
                 <img 
-                  src={playlist.image} 
+                  src={playlist.imageUrl || (playlist as any).image} 
                   alt="AID Logo" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -2000,7 +2009,7 @@ function SingleDjSetTrackView({ isPlaying, togglePlay, userLikes, toggleLike, cu
               </button>
 
               <button 
-                onClick={() => togglePlay(song.audio)}
+                onClick={() => togglePlay(songAudio)}
                 className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
                 aria-label={trackIsPlaying ? "Pause" : "Play"}
               >
@@ -2063,7 +2072,7 @@ function DjSetStackSwipe({ songsList, playlist, isPlaying, currentTrackUrl, onPl
   ];
 
   const topSong = songsList[currentIndex];
-  const isTopCurrent = currentTrackUrl === topSong?.audio;
+  const isTopCurrent = currentTrackUrl === (topSong?.audioUrl || topSong?.audio);
   const isTopPlaying = isPlaying && isTopCurrent;
 
   return (
@@ -2077,7 +2086,7 @@ function DjSetStackSwipe({ songsList, playlist, isPlaying, currentTrackUrl, onPl
           if (!song) return null;
 
           const trackCover = trackCovers[index % trackCovers.length];
-          const isCurrent = currentTrackUrl === song.audio;
+          const isCurrent = currentTrackUrl === (song.audioUrl || song.audio);
           const isCurrentPlaying = isPlaying && isCurrent;
           const itemId = `djset_track:${playlist.id}:${index}`;
           const isLiked = userLikes?.includes(itemId);
@@ -2148,16 +2157,16 @@ function DjSetStackSwipe({ songsList, playlist, isPlaying, currentTrackUrl, onPl
                         whileTap={{ scale: 0.95 }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          const isPlaylistPlaying = isPlaying && songsList.some((s: any) => s.audio === currentTrackUrl);
+                          const isPlaylistPlaying = isPlaying && songsList.some((s: any) => (s.audioUrl || s.audio) === currentTrackUrl);
                           if (isPlaylistPlaying && currentTrackUrl) {
                             onPlayToggle(currentTrackUrl);
                           } else {
-                            onPlayToggle(song.audio);
+                            onPlayToggle(song.audioUrl || song.audio);
                           }
                         }}
                         className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-[0_8px_20px_rgba(255,255,255,0.25)]"
                       >
-                        {isPlaying && songsList.some((s: any) => s.audio === currentTrackUrl) ? (
+                        {isPlaying && songsList.some((s: any) => (s.audioUrl || s.audio) === currentTrackUrl) ? (
                           <Pause size={24} className="fill-black text-black" />
                         ) : (
                           <Play size={24} className="ml-0.5 fill-black text-black" />
@@ -2388,7 +2397,7 @@ function TracksBottomSheet({ isOpen, onClose, songsList, playlist, isPlaying, cu
                     onPlayToggle={onPlayToggle}
                     userLikes={userLikes}
                     onLikeToggle={onLikeToggle}
-                    playlistImage={playlist.image}
+                    playlistImage={playlist.imageUrl || playlist.image}
                     author={playlist.author}
                   />
                 ))}
@@ -2406,7 +2415,7 @@ function SingleDjSetView({ isPlaying, togglePlay, currentTrackUrl, userLikes, to
   const { id } = useParams();
   const navigate = useNavigate();
   const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.image || getRandomBackground());
+  const [bgUrl] = useState(() => playlist?.imageUrl || (playlist as any)?.image || getRandomBackground());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   if (!playlist) return null;
@@ -2451,7 +2460,7 @@ function SingleDjSetView({ isPlaying, togglePlay, currentTrackUrl, userLikes, to
               {/* Left Cover Artwork */}
               <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border border-white/10 shrink-0 group">
                 <img 
-                  src={playlist.image} 
+                  src={playlist.imageUrl || (playlist as any).image} 
                   alt="" 
                   className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
                   referrerPolicy="no-referrer"
@@ -2482,10 +2491,10 @@ function SingleDjSetView({ isPlaying, togglePlay, currentTrackUrl, userLikes, to
                 {/* Action Buttons Row */}
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                   <button 
-                    onClick={() => togglePlay(songsList[0]?.audio)}
-                    className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => s.audio === currentTrackUrl) ? 'play-pulse' : ''}`}
+                    onClick={() => togglePlay(songsList[0]?.audioUrl || (songsList[0] as any)?.audio)}
+                    className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => (s.audioUrl || (s as any).audio) === currentTrackUrl) ? 'play-pulse' : ''}`}
                   >
-                    {isPlaying && songsList.some(s => s.audio === currentTrackUrl) ? (
+                    {isPlaying && songsList.some(s => (s.audioUrl || (s as any).audio) === currentTrackUrl) ? (
                       <>
                         <Pause size={16} className="fill-black text-black" />
                         <span>PAUSA</span>
@@ -2570,7 +2579,7 @@ function SingleDjSetView({ isPlaying, togglePlay, currentTrackUrl, userLikes, to
                   onPlayToggle={togglePlay}
                   userLikes={userLikes}
                   onLikeToggle={toggleLike}
-                  playlistImage={playlist.image}
+                  playlistImage={playlist.imageUrl || (playlist as any).image}
                   author={playlist.author}
                 />
               ))}
@@ -2600,7 +2609,7 @@ function SingleSongView({ isPlaying, togglePlay, userLikes, toggleLike, currentT
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.image || getRandomBackground());
+  const [bgUrl] = useState(() => playlist?.imageUrl || (playlist as any)?.image || getRandomBackground());
   
   const sIndex = Number(songIndex);
   const songs = playlist ? getPlaylistSongs(playlist.id) : [];
@@ -2608,9 +2617,10 @@ function SingleSongView({ isPlaying, togglePlay, userLikes, toggleLike, currentT
 
   if (!playlist || !song) return null;
 
+  const songAudio = song.audioUrl || (song as any).audio;
   const itemId = `playlist_song:${playlist.id}:${songIndex}`;
   const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === song.audio;
+  const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
   const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
 
   const goToPrev = () => {
@@ -2622,15 +2632,15 @@ function SingleSongView({ isPlaying, togglePlay, userLikes, toggleLike, currentT
   };
 
   useEffect(() => {
-    if (currentTrackUrl !== song.audio || !isPlaying) {
-      if (currentTrackUrl !== song.audio) {
-        togglePlay(song.audio);
+    if (currentTrackUrl !== songAudio || !isPlaying) {
+      if (currentTrackUrl !== songAudio) {
+        togglePlay(songAudio);
       } else if (!isPlaying) {
-        togglePlay(song.audio);
+        togglePlay(songAudio);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.audio]);
+  }, [songAudio]);
 
   return (
     <motion.main
@@ -2692,7 +2702,7 @@ function SingleSongView({ isPlaying, togglePlay, userLikes, toggleLike, currentT
               </button>
 
               <button 
-                onClick={() => togglePlay(song.audio)}
+                onClick={() => togglePlay(songAudio)}
                 className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
                 aria-label={trackIsPlaying ? "Pause" : "Play"}
               >
@@ -2737,7 +2747,7 @@ function SinglePlaylistView({ isPlaying, togglePlay, currentTrackUrl, userLikes,
   const { id } = useParams();
   const navigate = useNavigate();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.image || getRandomBackground());
+  const [bgUrl] = useState(() => playlist?.imageUrl || (playlist as any)?.image || getRandomBackground());
 
   if (!playlist) return null;
 
@@ -2780,7 +2790,7 @@ function SinglePlaylistView({ isPlaying, togglePlay, currentTrackUrl, userLikes,
             {/* Left: Giant Cover Art with Glow */}
             <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border border-white/10 shrink-0 group">
               <img 
-                src={playlist.image} 
+                src={playlist.imageUrl || (playlist as any).image} 
                 alt="" 
                 className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
                 referrerPolicy="no-referrer"
@@ -2811,10 +2821,10 @@ function SinglePlaylistView({ isPlaying, togglePlay, currentTrackUrl, userLikes,
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                 <button 
-                  onClick={() => togglePlay(songs[0]?.audio)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songs.some(s => s.audio === currentTrackUrl) ? 'play-pulse' : ''}`}
+                  onClick={() => togglePlay(songs[0]?.audioUrl || (songs[0] as any)?.audio)}
+                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songs.some(s => (s.audioUrl || (s as any).audio) === currentTrackUrl) ? 'play-pulse' : ''}`}
                 >
-                  {isPlaying && songs.some(s => s.audio === currentTrackUrl) ? (
+                  {isPlaying && songs.some(s => (s.audioUrl || (s as any).audio) === currentTrackUrl) ? (
                     <>
                       <Pause size={16} className="fill-black text-black" />
                       <span>PAUSA</span>
@@ -2853,7 +2863,7 @@ function SinglePlaylistView({ isPlaying, togglePlay, currentTrackUrl, userLikes,
                 onPlayToggle={togglePlay}
                 userLikes={userLikes}
                 onLikeToggle={toggleLike}
-                playlistImage={playlist.image}
+                playlistImage={playlist.imageUrl || (playlist as any).image}
                 author={playlist.author}
               />
             ))}
