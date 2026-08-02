@@ -7,6 +7,7 @@
 // ==========================================
 
 export interface Song {
+  id?: string | number;
   title: string;
   duration?: string;
   audioUrl: string;
@@ -45,6 +46,8 @@ export interface MediaCategoryItem {
 // Category-specific aliases for explicit semantic domain representation
 export type PodcastItem = MediaCategoryItem;
 export type PlaylistCategoryItem = MediaCategoryItem;
+export type PlaylistItem = MediaCategoryItem;
+export type DJSetItem = MediaCategoryItem;
 export type ProgramItem = MediaCategoryItem;
 export type CarouselItem = MediaCategoryItem;
 
