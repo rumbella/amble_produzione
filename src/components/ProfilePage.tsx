@@ -15,13 +15,8 @@ import {
   ArrowRight, 
   Sparkles 
 } from 'lucide-react';
-import { 
-  MUSIC_PLAYLISTS, 
-  PODCAST_ITEMS, 
-  DJSET_ITEMS, 
-  MOCK_SONGS, 
-  getDjSetSongs 
-} from '../App';
+import { DJSET_ITEMS, MOCK_SONGS, getDjSetSongs } from '../data/djsets';
+import { MUSIC_PLAYLISTS, PODCAST_ITEMS } from '../data/podcasts';
 
 // Beautiful selection of music avatars for quick signups and guest accounts
 const PRESET_AVATARS = [

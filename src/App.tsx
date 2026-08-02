@@ -12,247 +12,41 @@ import { WebGLBackground } from './components/WebGLBackground';
 import { ExploreView } from './components/ExploreView';
 import { ContentGrid, MOCK_FEATURED_SLOTS } from './components/ContentGrid';
 
-export const MUSIC_PLAYLISTS = [
-  {
-    id: 12,
-    title: 'Planet Funk',
-    author: 'Planet Funk',
-    seed: 112,
-    tag: 'NUOVA PLAYLIST',
-    subtitle: 'The Ultimate Selection',
-    teaser: 'La potente ed elettronica discografia dei Planet Funk: una selezione travolgente ricca di hit storiche, influenze rock-dance e ritmi inconfondibili.',
-    image: 'https://radioamble-cdn.b-cdn.net/Planet%20Funk/immagini/aff70516-692b-4b0a-8282-b0a12a42f270~1%20(2).jpg'
-  },
-  {
-    id: 11,
-    title: 'Stiv Tirella Selection',
-    author: 'Stiv Tirella',
-    seed: 111,
-    tag: 'NUOVA PLAYLIST',
-    subtitle: 'La selezione di Stiv',
-    teaser: 'Una raffinata e trascinante selezione musicale a cura di Stiv Tirella con sonorità speciali e groove profondi.',
-    image: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg'
-  }
-];
+// ==========================================
+// DATA IMPORTS & RE-EXPORTS (From src/data/)
+// ==========================================
+import { MUSIC_PLAYLISTS, PODCAST_ITEMS, getPodcastSongs, getPlaylistSongs } from './data/podcasts';
+import { DJSET_ITEMS, MOCK_SONGS, getDjSetSongs, type Song } from './data/djsets';
+import { HOMEPAGE_BACKGROUNDS, RANDOM_BACKGROUNDS, getRandomBackground } from './data/featured';
+import { PLAYLIST_SPOTLIGHT_TRACKS, PODCAST_SPOTLIGHT_TRACKS, DJSET_SPOTLIGHT_TRACKS, PROGRAMMI_SPOTLIGHT_TRACKS } from './data/tracks';
+import { PROGRAMMI_ITEMS, MUSIK_TALK_EPISODES } from './data/shows';
 
-export const PODCAST_ITEMS = [
-  {
-    id: 5,
-    title: 'Scheggia Impazzita',
-    author: 'Stiv Tirella',
-    image: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
-    seed: 205,
-    tag: 'PODCAST ESCLUSIVO',
-    subtitle: 'Di Stiv Tirella',
-    teaser: 'L\'energia irriverente e imprevedibile di Scheggia Impazzita, formato podcast firmato Stiv Tirella con ospiti d\'eccezione.'
-  },
-  {
-    id: 6,
-    title: 'Il segreto del naso di Rioba',
-    author: 'Vichi de Marchi',
-    image: 'https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/images%20(8).jpeg',
-    seed: 206,
-    tag: 'LIBRERIA BRAC / EMONS',
-    subtitle: 'Letture d\'Autore',
-    teaser: 'Una ragazza, una cesta di pane, un quaderno rosso, a due passi dalla Liberazione. Venezia, gennaio 1945. Emma fa la garzona al forno del sior Bepi. Nonostante l’ansia per la presenza dei tedeschi nelle strade, il suo lavoro le piace: i giri di consegne, l’odore del pane, la vicinanza di Elio. Da qualche tempo, però, le persone intorno a lei hanno troppi segreti: cosa c’è nel quaderno rosso che suo fratello le chiede di nascondere sotto la statua del sior Rioba in campo dei Mori? Chi è lo studente col vocabolario, amico di Elio? E perché un giorno Venezia si risveglia dipinta di rosso?'
-  },
-  {
-    id: 7,
-    title: 'Anche il diavolo si stanca',
-    author: 'A.',
-    image: 'https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/River%20to%20River%20Indian%20Film%20Festival/images%20(9).jpeg',
-    seed: 207,
-    tag: 'LIBRERIA BRAC / EMONS',
-    subtitle: 'Letture d\'Autore',
-    teaser: 'L\'amicizia esilarante e poetica tra una zia e una nipote. Incuriosita dalla storia della Sella del Diavolo, il promontorio che domina il golfo di Cagliari, Efi non riesce a smettere di pensare al povero diavolo sconfitto da un’orda di angeli. Così decide di andare a cercarlo per conoscere la sua versione. C’è solo una persona tanto folle da acconsentire ad accompagnerarla: la zia Flu, che studia i fenicotteri e ha due oche a guardia del giardino. La gita offrirà a zia e nipote l’occasione di vivere un’avventura indimenticabile, tra cielo e mare, dove tutto diventa possibile.'
-  }
-];
-
-export const DJSET_ITEMS = [
-  { 
-    id: 2, 
-    title: 'Alex Neri', 
-    author: 'Alex Neri', 
-    image: 'https://radioamble-cdn.b-cdn.net/Alex%20Neri%20dj/images%20(12).jpeg',
-    seed: 302,
-    tag: 'SELEZIONE CLUB',
-    subtitle: 'DJ Set Selecta',
-    teaser: 'Groove esclusivi ed house d\'eccezione firmata Alex Neri: sessioni registrate live appositamente per Radio Amblè.'
-  },
-  { 
-    id: 1, 
-    title: 'Accademia italiana dj A.i.D.', 
-    author: 'Radio Amblè', 
-    image: 'https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./immagini%20e%20video%20ai%20per%20AID/images%20(7)%20-%20Modificata%20(1).png',
-    seed: 301,
-    tag: 'MIX ESCLUSIVO',
-    subtitle: 'I talenti del domani',
-    teaser: 'I migliori allievi e docenti della scuola A.i.D. firmano una selezione elettronica tagliente e imprevedibile.'
-  },
-  { 
-    id: 3, 
-    title: 'Biga', 
-    author: 'Biga', 
-    image: 'https://radioamble-cdn.b-cdn.net/Biga/Biga_press_ottobre126%20(1)%20(1).webp',
-    seed: 303,
-    tag: 'SELEZIONE VINILICA',
-    subtitle: 'Deep Sounds from the Vault',
-    teaser: 'Una selezione ricercata di rarità funk, soul, hip-hop ed elettronica d\'annata, mixata sapientemente dall\'eclettico DJ Biga.'
-  },
-  { 
-    id: 4, 
-    title: 'Collettivo Co.lore', 
-    author: 'Collettivo Co.lore', 
-    image: 'https://radioamble-cdn.b-cdn.net/Collettivo%20colore/Screenshot%202026-06-06%2021.56.02.png',
-    seed: 304,
-    tag: 'EXPLORATION',
-    subtitle: 'Co.LORE Gisela',
-    teaser: 'Atmosfere profonde e sound design curato dal Collettivo Co.lore.'
-  },
-  { 
-    id: 5, 
-    title: 'FKV', 
-    author: 'FKV', 
-    image: 'https://radioamble-cdn.b-cdn.net/FKV/FKV_PRESSKIT_2024%20(1)%20(2).jpg',
-    seed: 305,
-    tag: 'SELEZIONE DEEP',
-    subtitle: 'FKV Selection',
-    teaser: 'Selezione ricercata e accattivante firmata FKV, con groove trascinanti e sonorità avvolgenti.'
-  },
-  { 
-    id: 6, 
-    title: 'GGDEX GENTLE WAVES', 
-    author: 'GGDEX GENTLE WAVES', 
-    image: 'https://radioamble-cdn.b-cdn.net/GGDEX%20GENTLE%20WAVES/Bio%20Foto/Photo-01%20(1).jpg',
-    seed: 306,
-    tag: 'GENTLE WAVES',
-    subtitle: 'Ambient & Deep Selection',
-    teaser: 'Onde sonore, ritmi avvolgenti e paesaggi sonori rilassanti curati da GGDEX per Radio Amblè.'
-  },
-  { 
-    id: 7, 
-    title: 'HZHA DISCHI SOFFICI', 
-    author: 'HZHA DISCHI SOFFICI', 
-    image: 'https://radioamble-cdn.b-cdn.net/HZHA%20DISCHI%20SOFFICI/Foto%20e%20Bio/37c45c4f-2352-43dc-8b1f-d9060b996dc5%20(1).jpeg',
-    seed: 307,
-    tag: 'DISCHI SOFFICI',
-    subtitle: 'Mellow & Soft Grooves',
-    teaser: 'Un viaggio imperdibile tra dischi soffici e sonorità calde selezionate con cura per Radio Amblè.'
-  },
-  { 
-    id: 8, 
-    title: 'Mistiche Vibre', 
-    author: 'Mistiche Vibre', 
-    image: 'https://radioamble-cdn.b-cdn.net/Mistiche%20Vibre/Mistiche%20Vibre.jpeg',
-    seed: 308,
-    tag: 'MISTICA',
-    subtitle: 'Vibrazioni Mistiche',
-    teaser: 'Atmosfere magiche e suoni avvolgenti selezionati da Mistiche Vibre per un viaggio sensoriale indimenticabile.'
-  },
-  { 
-    id: 9, 
-    title: 'Vimana', 
-    author: 'Vimana', 
-    image: 'https://radioamble-cdn.b-cdn.net/vimana/Screenshot%202025-12-05%2010.35.23.png',
-    seed: 309,
-    tag: 'RARE GROOVE',
-    subtitle: 'Vimana Project Selection',
-    teaser: 'Rarità groove, selezioni funk calde, sonorità italiane e ritmi rari scelti da Vimana Project.'
-  },
-  { 
-    id: 10, 
-    title: 'Stiv Tirella', 
-    author: 'Stiv Tirella', 
-    image: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
-    seed: 310,
-    tag: 'SCHEGGIA IMPAZZITA',
-    subtitle: 'Scheggia Impazzita',
-    teaser: 'Energia allo stato puro e selezioni eccentriche firmate Stiv Tirella con il suo celebre format Scheggia Impazzita.'
-  },
-  { 
-    id: 11, 
-    title: 'Rufus', 
-    author: 'Rufus', 
-    image: 'https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/immagini/397df7675bb90715880609056aad5814.jpg',
-    seed: 311,
-    tag: 'CITY SOUND PERSPECTIVE',
-    subtitle: 'City Sound Perspective',
-    teaser: 'Un elegante viaggio sonoro metropolitano tra groove raffinati, funk, disco e sonorità ricercate selezionate da Rufus.'
-  }
-];
-
-export type Song = {
-  title: string;
-  duration: string;
-  audio: string;
-  background?: string;
+export {
+  MUSIC_PLAYLISTS,
+  PODCAST_ITEMS,
+  getPodcastSongs,
+  getPlaylistSongs,
+  DJSET_ITEMS,
+  MOCK_SONGS,
+  getDjSetSongs,
+  HOMEPAGE_BACKGROUNDS,
+  RANDOM_BACKGROUNDS,
+  getRandomBackground,
+  PLAYLIST_SPOTLIGHT_TRACKS,
+  PODCAST_SPOTLIGHT_TRACKS,
+  DJSET_SPOTLIGHT_TRACKS,
+  PROGRAMMI_SPOTLIGHT_TRACKS,
+  PROGRAMMI_ITEMS,
+  MUSIK_TALK_EPISODES
 };
+export type { Song };
 
-export const MOCK_SONGS: Song[] = [
-  { title: "Come Together", duration: "4:19", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-  { title: "Something", duration: "3:02", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-  { title: "Maxwell's Silver Hammer", duration: "3:27", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-  { title: "Oh! Darling", duration: "3:26", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
-  { title: "Octopus's Garden", duration: "2:50", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
-  { title: "I Want You (She's So Heavy)", duration: "7:47", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
-  { title: "Here Comes The Sun", duration: "3:05", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
-  { title: "Because", duration: "2:45", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
-];
 
-export function getDjSetSongs(playlistId: number): Song[] {
-  if (playlistId === 1) {
-    return [
-      { 
-        title: "millers e alez garcia", 
-        duration: "5:32", 
-        audio: "https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./AiD%20%232%20%20Millers%20Galez%20Garcia.mp3" 
-      },
-      {
-        title: "Emanuele Orsini Giorgia Marziano",
-        duration: "4:45",
-        audio: "https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./AiD%20%233%20Emanuele%20Orsini%20Giorgia%20Marziano.mp3"
-      },
-      {
-        title: "marzo Alex Meu e Xandra",
-        duration: "5:12",
-        audio: "https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./AiD%20%234%2025%20marzo%20Alex%20Meu%20e%20Xandra.mp3"
-      },
-      {
-        title: "Kressi e Galez Garcia",
-        duration: "6:18",
-        audio: "https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./AiD%20%235%20Kressi%20e%20Galez%20Garcia.mp3"
-      },
-      {
-        title: "Vika Meelis e Hroven",
-        duration: "5:50",
-        audio: "https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./AiD%20%236%20Vika%20Meelis%20e%20Hroven.mp3"
-      },
-      {
-        title: "Daniela Ferrari e Galez Garcia",
-        duration: "5:05",
-        audio: "https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./AiD%20%237%20Daniela%20Ferrari%20e%20Galez%20Garcia.mp3"
-      }
-    ];
-  }
-  if (playlistId === 2) {
-    return [
-      {
-        title: "ALEX NERI E MOUNTH WATER",
-        duration: "1:14:27",
-        audio: "https://radioamble-cdn.b-cdn.net/Alex%20Neri%20dj/Set/ALEX%20NERI%20E%20MOUNTH%20WATER%20RADIO%20AMBLE%2027%20LUGLIO%202022.mp3"
-      },
-      {
-        title: "ALEX NERI E MENNIE",
-        duration: "1:18:40",
-        audio: "https://radioamble-cdn.b-cdn.net/Alex%20Neri%20dj/Set/ALEX%20NERI%20E%20MENNIE%20RADIO%20AMBLE%2031%20AGOSTO%202022.mp3"
-      },
-      {
-        title: "ALEX NERI",
-        duration: "1:24:10",
-        audio: "https://radioamble-cdn.b-cdn.net/Alex%20Neri%20dj/Set/alex%20neri.mp3"
-      }
-    ];
-  }
+
+
+
+// getDjSetSongs removed (imported from data/djsets)
+/*
   if (playlistId === 3) {
     return [
       {
@@ -619,37 +413,9 @@ export function getPlaylistSongs(playlistId: number): Song[] {
   }
   return MOCK_SONGS;
 }
+*/
 
-export const HOMEPAGE_BACKGROUNDS = [
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1302.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A0466.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1066.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1321.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1781.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1814.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A2168.jpg",
-  "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A2047.jpg"
-];
 
-export const RANDOM_BACKGROUNDS = [
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Uplifting%20life%20lessons%20for%20people%20who%20love%20practical%20beauty%20today%20for%20simple%20inner%20peace%20%F0%9F%95%8A%EF%B8%8F.jpg",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/7%20Fresh%20easy%20dinner%20recipe%20ideas%20that%20are%20worth%20saving%20if%20you%20love%20elegant%20details%20and%20creative%20inspiration%20for%20anyone%20planning%20a%20beautiful%20refresh.jpg",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Discover%20Creative%20tiny%20apartment%20decor%20that%20make%20your%20next%20project%20look%20polished%20and%20expensive%20for%20ideas%20worth%20saving%20right%20now.jpg",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Impressive%20Productivity%20Hacks%20That%20Never%20Go%20Out%20of%20Style.jpg",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Get%20inspired%20by%20Unique%20side%20hustle%20ideas%20that%20are%20trending%20right%20now%20across%20Pinterest%20boards%20for%20ideas%20worth%20saving%20right%20now.jpg",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/85%20Genius%20Family%20Dinner%20Ideas.mp4",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Cozy%20meal%20prep%20inspiration%20for%20busy%20days%20that%20feel%20fresh%20and%20shareable%20to%20save%20for%20later%20%F0%9F%93%8C.mp4",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/DIY%20Gift%20Ideas%20Inspiration%20for%20Back-to-School%2099196.mp4",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Elegant%20Printable%20Wall%20Art%20Ideas%20Worth%20Trying.mp4",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Explore%20Timeless%20healthy%20breakfast%20recipes%20that%20make%20your%20next%20project%20look%20polished%20and%20expensive%20for%20your%20next%20Pinterest%20save.mp4",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Pin%20these%2013%2520Unique%2520curly%2520hair%2520care%2520ideas%2520that%2520are%2520perfect%2520when%2520you%2520want%2520something%2520stylish%2520modern%2520and%2520easy%2520to%2520copy%2520for%2520anyone%2520planning%2520a%2520beautiful.mp4",
-  "https://radioamble-cdn.b-cdn.net/immagini%20e%20video%20random/Pin%20these%20beautiful%20pet%20routine%20ideas%20that%20feel%20luxe%20without%2520spending%2520a%2520fortune%2520for%2520a%2520stylish%2520result%2520that%2520still%2520feels%2520effortless%2520%E2%80%94%2520save%2520these%2520ideas%2520(1).mp4"
-];
-
-export function getRandomBackground(): string {
-  const randomIdx = Math.floor(Math.random() * RANDOM_BACKGROUNDS.length);
-  return RANDOM_BACKGROUNDS[randomIdx].replace(/ /g, "%20");
-}
 
 const LongArrowLeft = ({ size = 24, strokeWidth = 1.5, className = "" }) => (
   <svg 
@@ -913,173 +679,7 @@ function PinterestCard({
   );
 }
 
-export const PLAYLIST_SPOTLIGHT_TRACKS = [
-  {
-    title: "Chase the Sun",
-    artist: "Planet Funk",
-    audio: "https://radioamble-cdn.b-cdn.net/Planet%20Funk/02%20chase%20the%20sun.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Planet%20Funk/immagini/aff70516-692b-4b0a-8282-b0a12a42f270~1%20(2).jpg"
-  },
-  {
-    title: "Another Day",
-    artist: "Buckshot LeFonque",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Playlist/Another%20Day%20_%20Bukshot%20Lefonque.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg"
-  },
-  {
-    title: "Easy",
-    artist: "Groove Armada",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Playlist/Groove%20Armada%20_%20Easy.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg"
-  },
-  {
-    title: "Bloodstream",
-    artist: "Stateless",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Playlist/Stateless%20_%20Bloodstream%20.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg"
-  },
-  {
-    title: "Inside All the People",
-    artist: "Planet Funk",
-    audio: "https://radioamble-cdn.b-cdn.net/Planet%20Funk/05%20inside%20all%20the%20people.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Planet%20Funk/immagini/aff70516-692b-4b0a-8282-b0a12a42f270~1%20(2).jpg"
-  },
-  {
-    title: "The Switch",
-    artist: "Planet Funk",
-    audio: "https://radioamble-cdn.b-cdn.net/Planet%20Funk/04%20the%20switch.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Planet%20Funk/immagini/aff70516-692b-4b0a-8282-b0a12a42f270~1%20(2).jpg"
-  }
-];
 
-export const PODCAST_SPOTLIGHT_TRACKS = [
-  {
-    title: "Nikky di Radio deejay",
-    artist: "Stiv Tirella",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/12%20NIKKI%20scheggia%20(1)%20(1).mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/cover%20rielaborate%20scheggie/91bc11e7-db11-4db1-b21c-ef21d662aec3.png"
-  },
-  {
-    title: "Il segreto del naso di Rioba",
-    artist: "Brac Emons",
-    audio: "https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/Brac%20Emons%20Vichi%20se%20Marchi%20Il%20segreto%20del%20naso%20di%20Rioba%2030%20sett%2025.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/images%20(8).jpeg"
-  },
-  {
-    title: "intervista a faso",
-    artist: "Stiv Tirella",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/FASO%20SCHEGGIA%201.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/cover%20rielaborate%20scheggie/01f3de8a-2a62-42a6-beef-afeeb4e0b0c9.png"
-  },
-  {
-    title: "Anche il diavolo si stanca",
-    artist: "Brac Emons",
-    audio: "https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/River%20to%20River%20Indian%20Film%20Festival/Brac%20Emons%20A.%2023%20settembre%20Anche%20il%20diavolo%20si%20stanca%20p.p.wav",
-    image: "https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/River%20to%20River%20Indian%20Film%20Festival/images%20(9).jpeg"
-  },
-  {
-    title: "intervista a marlen",
-    artist: "Stiv Tirella",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/MARLEN%20SCHEGGIA%20.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/13aaa0b2-3262-4326-99c2-319c3ecb3944%20(2).png"
-  },
-  {
-    title: "Music&Talk - Thomas T.",
-    artist: "Thomas T.",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%235%20Thomas%20T.%20pres.%20Ottanio.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(17).jpg"
-  }
-];
-
-export const DJSET_SPOTLIGHT_TRACKS = [
-  {
-    title: "VOL 1",
-    artist: "Rufus City",
-    audio: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/Rufus%20C.S.%20p.%2030%20ott%2025.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/immagini/397df7675bb90715880609056aad5814.jpg"
-  },
-  {
-    title: "VOL 2",
-    artist: "Rufus City",
-    audio: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/Rufus%20C.S.p.18%20dic%2025.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/immagini/397df7675bb90715880609056aad5814.jpg"
-  },
-  {
-    title: "VOL 3",
-    artist: "Rufus City",
-    audio: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/Rufus%20C.S.P%2019%20feb%2026.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/immagini/397df7675bb90715880609056aad5814.jpg"
-  },
-  {
-    title: "VOL 4",
-    artist: "Rufus City",
-    audio: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records%20%20%231.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/immagini/397df7675bb90715880609056aad5814.jpg"
-  },
-  {
-    title: "VOL 5",
-    artist: "Rufus City",
-    audio: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/Rufus%20City%20sound%20pr.%204%20sett%2025.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Rufus%20City%20Sound%20Perspective%20-%20Qindi%20records/immagini/397df7675bb90715880609056aad5814.jpg"
-  },
-  {
-    title: "Music&Talk - Alex Neri",
-    artist: "Alex Neri",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%232%20Alex%20Neri%20.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Alex%20Neri%20dj/images%20(12).jpeg"
-  },
-  {
-    title: "Music&Talk - Francesco Farfa",
-    artist: "Francesco Farfa",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(14).jpg"
-  },
-  {
-    title: "Music&Talk - Albi Scotti",
-    artist: "Albi Scotti",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%236%20Albi%20Scotti.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(8).jpg"
-  }
-];
-
-export const PROGRAMMI_SPOTLIGHT_TRACKS = [
-  {
-    title: "Music&Talk - Francesco Farfa",
-    artist: "Francesco Farfa",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(14).jpg"
-  },
-  {
-    title: "Music&Talk - Alex Neri",
-    artist: "Alex Neri",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%232%20Alex%20Neri%20.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(10).jpg"
-  },
-  {
-    title: "Music&Talk - Albi Scotti",
-    artist: "Albi Scotti",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%236%20Albi%20Scotti.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(8).jpg"
-  },
-  {
-    title: "Nikky di Radio deejay",
-    artist: "Stiv Tirella",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/12%20NIKKI%20scheggia%20(1)%20(1).mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/cover%20rielaborate%20scheggie/91bc11e7-db11-4db1-b21c-ef21d662aec3.png"
-  },
-  {
-    title: "intervista a faso",
-    artist: "Stiv Tirella",
-    audio: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/FASO%20SCHEGGIA%201.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/podcast/cover%20rielaborate%20scheggie/01f3de8a-2a62-42a6-beef-afeeb4e0b0c9.png"
-  },
-  {
-    title: "Il segreto del naso di Rioba",
-    artist: "Brac Emons",
-    audio: "https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/Brac%20Emons%20Vichi%20se%20Marchi%20Il%20segreto%20del%20naso%20di%20Rioba%2030%20sett%2025.mp3",
-    image: "https://radioamble-cdn.b-cdn.net/Brac%20Libreria%20arte%20contemporanea/images%20(8).jpeg"
-  }
-];
 
 function SpotlightTracksSection({ 
   title = "Spotlight", 
@@ -1451,87 +1051,7 @@ function DjSetView({ isPlaying, togglePlay, currentTrackUrl }: any) {
   );
 }
 
-export const PROGRAMMI_ITEMS = [
-  {
-    id: 1,
-    title: 'Scheggia Impazzita',
-    author: 'Stiv Tirella',
-    time: 'Ogni Lunedì • 18:00 - 19:30',
-    type: 'podcast',
-    targetId: 5,
-    tag: 'PODCAST ESCLUSIVO',
-    teaser: "L'energia irriverente e imprevedibile del talk show di Stiv Tirella con interviste sorprendenti a ospiti speciali.",
-    image: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
-  },
-  {
-    id: 5,
-    title: 'Musik & Talk',
-    author: 'Francesco Farfa, Ricky le Roy & guests',
-    time: 'Mensile • Esclusivo',
-    type: 'musiktalk',
-    targetId: null,
-    tag: 'TALK & DJSET',
-    teaser: "Interviste intime, storie indimenticabili ed eccezionali selezioni musicali con i padri fondatori e i protagonisti della scena clubbing.",
-    image: 'https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(5).jpg',
-  }
-];
 
-export const MUSIK_TALK_EPISODES = [
-  {
-    id: 1,
-    title: "Music&Talk - Francesco Farfa",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(14).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
-    duration: "1:15:30",
-    author: "Francesco Farfa",
-    tag: "PUNTATA 1",
-  },
-  {
-    id: 2,
-    title: "Music&Talk - Ricky le Roy & Luca Pechino",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(9).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
-    duration: "1:22:15",
-    author: "Ricky le Roy & Luca Pechino",
-    tag: "PUNTATA 2",
-  },
-  {
-    id: 3,
-    title: "Music&Talk - Slowaxx",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(15).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%231%20Francesco%20Farfa%20.mp3",
-    duration: "1:08:45",
-    author: "Slowaxx",
-    tag: "PUNTATA 3",
-  },
-  {
-    id: 4,
-    title: "Music&Talk - Thomas T.",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Copia%20di%20francesco%20farfa%20(17).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%235%20Thomas%20T.%20pres.%20Ottanio.mp3",
-    duration: "1:18:12",
-    author: "Thomas T.",
-    tag: "PUNTATA 4",
-  },
-  {
-    id: 5,
-    title: "Music&Talk - Alex Neri",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(10).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%232%20Alex%20Neri%20.mp3",
-    duration: "1:24:50",
-    author: "Alex Neri",
-    tag: "PUNTATA 5",
-  },
-  {
-    id: 6,
-    title: "Music&Talk - Albi Scotti",
-    image: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(8).jpg",
-    audio: "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/Music%26Talk%20-%20%236%20Albi%20Scotti.mp3",
-    duration: "1:20:15",
-    author: "Albi Scotti",
-    tag: "PUNTATA 6",
-  }
-];
 
 function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
   const navigate = useNavigate();
@@ -2795,6 +2315,14 @@ function DjSetStackSwipe({ songsList, playlist, isPlaying, currentTrackUrl, onPl
 }
 
 function TracksBottomSheet({ isOpen, onClose, songsList, playlist, isPlaying, currentTrackUrl, onPlayToggle, userLikes, onLikeToggle }: any) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || typeof document === 'undefined') return null;
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
