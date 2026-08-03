@@ -29,29 +29,50 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Only handle GET requests and skip APIs / streaming / third-party services.
-  if (event.request.method !== "GET" || event.request.url.includes("/api/") || event.request.url.includes("firestore") || event.request.url.includes("google") || event.request.url.includes("cdn")) {
+  // Only GET requests
+  if (event.request.method !== "GET") return;
+
+  // Only http/https schemes (blocks chrome-extension:// and similar)
+  const url = new URL(event.request.url);
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
+
+  // Skip APIs / streaming / third-party / heavy CDN media
+  const href = event.request.url;
+  if (
+    href.includes("/api/") ||
+    href.includes("firestore") ||
+    href.includes("google") ||
+    href.includes("cdn")
+  ) {
     return;
   }
 
-  // Network-first: always try to fetch the freshest version. Only fall back
-  // to the cache (or the offline shell for navigations) if the network fails.
+  // Network-first, with a valid Response guaranteed in every branch
   event.respondWith(
-    fetch(event.request).then((response) => {
-      if (response && response.status === 200 && response.type === "basic") {
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-      }
-      return response;
-    }).catch(() => {
-      return caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-        if (event.request.mode === "navigate") {
-          return caches.match("/");
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            try {
+              cache.put(event.request, responseToCache);
+            } catch (e) {
+              // ignore uncacheable requests
+            }
+          });
         }
-      });
-    })
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (event.request.mode === "navigate") {
+            return caches.match("/").then((shell) => {
+              return shell || new Response("", { status: 504, statusText: "Offline" });
+            });
+          }
+          return new Response("", { status: 504, statusText: "Offline" });
+        });
+      })
   );
 });
