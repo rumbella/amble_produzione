@@ -16,7 +16,7 @@ export function ExploreView() {
         
         {/* Page Header */}
         <div className="mb-4 flex flex-col text-left">
-          <h1 className="font-display text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
+          <h1 className="font-space text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
             Scopri
           </h1>
           <p className="font-sans text-xs md:text-sm text-white/50 mt-2">

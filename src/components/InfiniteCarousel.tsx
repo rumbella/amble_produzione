@@ -195,10 +195,10 @@ export function InfiniteCarousel({ items, type, onItemClick }: InfiniteCarouselP
 
             {/* Metadata and Teaser text BELOW the card block */}
             <div className="flex flex-col mt-4 text-left">
-              <span className="text-[9px] md:text-[10px] font-semibold tracking-[0.18em] text-[#ff2e55] uppercase font-display">
+              <span className="text-[9px] md:text-[10px] font-semibold tracking-[0.18em] text-[#ff2e55] uppercase font-space">
                 {p.tag || 'CONSIGLIATO'}
               </span>
-              <h3 className="text-lg md:text-xl font-bold text-white mt-1 group-hover:text-white/80 transition-colors line-clamp-1 font-display tracking-widest uppercase">
+              <h3 className="text-lg md:text-xl font-bold text-white mt-1 group-hover:text-white/80 transition-colors line-clamp-1 font-space tracking-widest uppercase">
                 {p.title}
               </h3>
               <span className="text-xs md:text-sm text-white/50 line-clamp-1 mt-1 font-sans">

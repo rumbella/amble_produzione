@@ -62,7 +62,7 @@ export function ContentCard({
             src={item.mediaUrl}
             alt={item.title || "RadioAmblé Media"}
             onLoad={() => setLoaded(true)}
-            className={`w-full h-full object-cover select-none pointer-events-none transition-all duration-700 ease-in-out ${
+            className={`w-full h-full object-cover object-center select-none pointer-events-none transition-all duration-700 ease-in-out ${
               loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
             }`}
           />
@@ -74,7 +74,7 @@ export function ContentCard({
             autoPlay
             playsInline
             onLoadedData={() => setLoaded(true)}
-            className={`w-full h-full object-cover select-none pointer-events-none transition-all duration-700 ease-in-out ${
+            className={`w-full h-full object-cover object-center select-none pointer-events-none transition-all duration-700 ease-in-out ${
               loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
             }`}
           />

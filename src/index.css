@@ -6,8 +6,7 @@
   --color-on-surface: #e2e2e2;
   --color-outline-variant: rgba(255, 255, 255, 0.2);
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Codystar", cursive, monospace;
+  --font-sans: "Space Grotesk", sans-serif;
   --font-space: "Space Grotesk", sans-serif;
 
   --radius-sm: 0.5rem;
@@ -37,7 +36,7 @@
   }
 
   .nav-text {
-    @apply font-display text-[14px] text-white tracking-widest uppercase;
+    @apply font-space text-[14px] text-white tracking-widest uppercase;
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */

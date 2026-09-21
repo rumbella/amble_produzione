@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, Heart, MoreHorizontal, Share2, Link2 } from 'lucide-react';
 import { Song } from '../types';
+import { usePlayer } from '../contexts/PlayerContext';
 
 export interface SongRowItemProps {
   key?: any;
@@ -10,11 +11,11 @@ export interface SongRowItemProps {
   index: number;
   playlistId: number | string;
   playlistType: 'musiktalk' | 'podcast' | 'djset' | 'playlist' | string;
-  isPlaying: boolean;
-  currentTrackUrl: string | null;
-  onPlayToggle: (url: string) => void;
+  isPlaying?: boolean;
+  currentTrackUrl?: string | null;
+  onPlayToggle?: (url: string) => void;
   userLikes?: string[];
-  onLikeToggle: (id: string) => void;
+  onLikeToggle?: (id: string) => void;
   playlistImage?: string;
   author?: string;
   isExplicit?: boolean;
@@ -25,15 +26,21 @@ export function SongRowItem({
   index, 
   playlistId, 
   playlistType, 
-  isPlaying, 
-  currentTrackUrl, 
-  onPlayToggle, 
-  userLikes, 
-  onLikeToggle, 
+  isPlaying: propIsPlaying, 
+  currentTrackUrl: propCurrentTrackUrl, 
+  onPlayToggle: propOnPlayToggle, 
+  userLikes: propUserLikes, 
+  onLikeToggle: propOnLikeToggle, 
   playlistImage,
   author,
   isExplicit = false
 }: SongRowItemProps) {
+  const player = usePlayer();
+  const isPlaying = propIsPlaying ?? player.isPlaying;
+  const currentTrackUrl = propCurrentTrackUrl ?? player.currentTrackUrl;
+  const onPlayToggle = propOnPlayToggle ?? player.togglePlay;
+  const userLikes = propUserLikes ?? player.userLikes;
+  const onLikeToggle = propOnLikeToggle ?? player.toggleLike;
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const isCurrent = currentTrackUrl === song.audioUrl;
@@ -105,7 +112,7 @@ export function SongRowItem({
           <img
             src={thumbUrl}
             alt=""
-            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
             referrerPolicy="no-referrer"
           />
           {/* Soundwave or Play overlay */}
@@ -131,7 +138,7 @@ export function SongRowItem({
         {/* Info Column */}
         <div className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-2">
-            <h3 className={`text-sm sm:text-base font-bold text-white font-display tracking-wide truncate group-hover:text-[#ff2e55]/95 transition-colors ${isCurrent ? 'text-[#ff2e55]' : ''}`}>
+            <h3 className={`text-sm sm:text-base font-bold text-white font-space tracking-wide truncate group-hover:text-[#ff2e55]/95 transition-colors ${isCurrent ? 'text-[#ff2e55]' : ''}`}>
               {song.title}
             </h3>
             {isExplicit && (

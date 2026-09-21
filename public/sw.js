@@ -29,46 +29,50 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Only GET requests
-  if (event.request.method !== "GET") return;
-
-  // Only http/https schemes (blocks chrome-extension:// and similar)
-  const url = new URL(event.request.url);
-  if (url.protocol !== "http:" && url.protocol !== "https:") return;
-
-  // Skip APIs / streaming / third-party / heavy CDN media
-  const href = event.request.url;
-  if (
-    href.includes("/api/") ||
-    href.includes("firestore") ||
-    href.includes("google") ||
-    href.includes("cdn")
-  ) {
+  // Only handle GET requests with http/https scheme.
+  if (event.request.method !== "GET") {
     return;
   }
 
-  // Network-first, with a valid Response guaranteed in every branch
+  try {
+    const url = new URL(event.request.url);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return;
+    }
+  } catch (err) {
+    return;
+  }
+
+  // Network-first: try network first, then cache, and fallback to 504 Response if unavailable
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response && response.status === 200 && response.type === "basic") {
+        if (response && response.ok) {
           const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            try {
-              cache.put(event.request, responseToCache);
-            } catch (e) {
-              // ignore uncacheable requests
-            }
-          });
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => {
+              try {
+                cache.put(event.request, responseToCache).catch(() => {});
+              } catch (e) {
+                // Ignore caching errors for uncacheable requests/schemes
+              }
+            })
+            .catch(() => {});
         }
         return response;
       })
       .catch(() => {
         return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) return cachedResponse;
+          if (cachedResponse) {
+            return cachedResponse;
+          }
           if (event.request.mode === "navigate") {
-            return caches.match("/").then((shell) => {
-              return shell || new Response("", { status: 504, statusText: "Offline" });
+            return caches.match("/").then((navigationFallback) => {
+              if (navigationFallback) {
+                return navigationFallback;
+              }
+              return new Response("", { status: 504, statusText: "Offline" });
             });
           }
           return new Response("", { status: 504, statusText: "Offline" });

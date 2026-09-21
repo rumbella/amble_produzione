@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { DJSET_ITEMS, MOCK_SONGS, getDjSetSongs } from '../data/djsets';
 import { MUSIC_PLAYLISTS, PODCAST_ITEMS } from '../data/podcasts';
+import { usePlayer } from '../contexts/PlayerContext';
 
 // Beautiful selection of music avatars for quick signups and guest accounts
 const PRESET_AVATARS = [
@@ -28,7 +29,10 @@ const PRESET_AVATARS = [
   { name: 'Flamingo Street', url: 'https://radioamble-cdn.b-cdn.net/avatars/flamingo_street.png' }
 ];
 
-export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], toggleLike: (id: string) => void }) {
+export function ProfilePage({ userLikes: propUserLikes, toggleLike: propToggleLike }: { userLikes?: string[], toggleLike?: (id: string) => void }) {
+  const player = usePlayer();
+  const userLikes = propUserLikes ?? player.userLikes;
+  const toggleLike = propToggleLike ?? player.toggleLike;
   const { user, signIn, signInWithEmail, signUpWithEmail, logOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
@@ -240,14 +244,14 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
               </div>
 
               <div className="flex-1 flex flex-col">
-                <h2 className="font-display font-medium text-2xl text-white tracking-wider">
+                <h2 className="font-space font-medium text-2xl text-white tracking-wider">
                   {user.displayName || 'Ascoltatore Amblè'}
                 </h2>
                 <p className="font-sans text-sm text-white/50 lowercase">
                   {user.email || 'account.anonimo@radioamble.it'}
                 </p>
                 <div className="mt-2.5 flex items-center gap-2 justify-center sm:justify-start">
-                  <span className="text-[10px] tracking-widest px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 font-display text-white/80 shrink-0 uppercase">
+                  <span className="text-[10px] tracking-widest px-2.5 py-0.5 rounded-full bg-white/10 border border-white/10 font-space text-white/80 shrink-0 uppercase">
                     Membro Amblè
                   </span>
                 </div>
@@ -255,7 +259,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
 
               <button 
                 onClick={() => logOut()}
-                className="px-4 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-lg text-white hover:text-[#ff4646] transition-all flex items-center gap-2 text-xs font-display tracking-widest uppercase mt-4 sm:mt-0"
+                className="px-4 py-2 bg-white/10 hover:bg-white/15 border border-white/10 rounded-lg text-white hover:text-[#ff4646] transition-all flex items-center gap-2 text-xs font-space tracking-widest uppercase mt-4 sm:mt-0"
               >
                 <LogOut size={14} />
                 ESCI
@@ -264,7 +268,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
 
             {/* User Likes container */}
             <div className="flex flex-col gap-3">
-              <h3 className="font-display text-xs tracking-[0.2em] text-white/50 uppercase pl-1 mt-2">
+              <h3 className="font-space text-xs tracking-[0.2em] text-white/50 uppercase pl-1 mt-2">
                 I TUOI BRANI PREFERITI ({userLikes.length})
               </h3>
               
@@ -307,7 +311,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
 
                         {/* Play arrow */}
                         <div className="flex items-center gap-3">
-                          <span className="text-[8px] font-display tracking-wider text-white/40 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full uppercase">
+                          <span className="text-[8px] font-space tracking-wider text-white/40 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full uppercase">
                             {details.typeLabel}
                           </span>
                           <button 
@@ -334,7 +338,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
             className="glass-panel p-6 sm:p-8 flex flex-col"
           >
             <div className="text-center mb-8">
-              <h2 className="font-display font-bold text-2xl sm:text-3xl tracking-[0.1em] text-white uppercase">
+              <h2 className="font-space font-bold text-2xl sm:text-3xl tracking-[0.1em] text-white uppercase">
                 Profilo Radio Amblè
               </h2>
               <p className="font-sans text-xs sm:text-sm text-white/60 mt-2 max-w-md mx-auto">
@@ -360,7 +364,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="w-full py-3 bg-white hover:bg-white/95 text-[#1a1a1a] font-display tracking-wider text-xs uppercase font-semibold rounded-lg transition-all hover:scale-[1.01] active:scale-100 flex items-center justify-center gap-3 shadow-xl"
+                className="w-full py-3 px-3 sm:px-4 bg-white hover:bg-white/95 text-[#1a1a1a] font-space tracking-wider text-[11px] sm:text-xs uppercase font-semibold rounded-lg transition-all hover:scale-[1.01] active:scale-100 flex items-center justify-center gap-2 sm:gap-3 shadow-xl whitespace-nowrap"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -375,7 +379,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/10"></div>
                 </div>
-                <span className="relative px-3 bg-[#0a0a0a] text-[9px] tracking-widest font-display text-white/40 uppercase">
+                <span className="relative px-3 bg-[#0a0a0a] text-[9px] tracking-widest font-space text-white/40 uppercase">
                   oppure usa i dati di accesso
                 </span>
               </div>
@@ -385,13 +389,13 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
             <div className="flex border-b border-white/10 mb-6 bg-white/5 rounded-lg p-1">
               <button 
                 onClick={() => { setActiveTab('login'); resetMessages(); }}
-                className={`flex-1 py-2 text-xs sm:text-sm font-display tracking-wider font-light rounded transition-colors uppercase ${activeTab === 'login' ? 'bg-white/10 text-white font-medium' : 'text-white/60 hover:text-white'}`}
+                className={`flex-1 py-2 text-xs sm:text-sm font-space tracking-wider font-light rounded transition-colors uppercase ${activeTab === 'login' ? 'bg-white/10 text-white font-medium' : 'text-white/60 hover:text-white'}`}
               >
                 Accedi
               </button>
               <button 
                 onClick={() => { setActiveTab('register'); resetMessages(); }}
-                className={`flex-1 py-2 text-xs sm:text-sm font-display tracking-wider font-light rounded transition-colors uppercase ${activeTab === 'register' ? 'bg-white/10 text-white font-medium' : 'text-white/60 hover:text-white'}`}
+                className={`flex-1 py-2 text-xs sm:text-sm font-space tracking-wider font-light rounded transition-colors uppercase ${activeTab === 'register' ? 'bg-white/10 text-white font-medium' : 'text-white/60 hover:text-white'}`}
               >
                 Registrati
               </button>
@@ -401,7 +405,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
             {activeTab === 'login' && (
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-display text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Email</label>
+                  <label className="font-space text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Email</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-3 top-3.5 text-white/40" />
                     <input 
@@ -416,7 +420,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-display text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Password</label>
+                  <label className="font-space text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Password</label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3 top-3.5 text-white/40" />
                     <input 
@@ -433,7 +437,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 mt-4 bg-white/15 hover:bg-white/20 hover:text-white border border-white/10 text-white font-display tracking-widest text-xs uppercase font-medium rounded-lg transition-all hover:scale-[1.01] active:scale-100 flex items-center justify-center gap-2"
+                  className="w-full py-3 mt-4 bg-white/15 hover:bg-white/20 hover:text-white border border-white/10 text-white font-space tracking-widest text-xs uppercase font-medium rounded-lg transition-all hover:scale-[1.01] active:scale-100 flex items-center justify-center gap-2"
                 >
                   {loading ? 'ACCESSO IN CORSO...' : 'ACCEDI'}
                   <ArrowRight size={14} />
@@ -445,7 +449,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
             {activeTab === 'register' && (
               <form onSubmit={handleRegister} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-display text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Nome Completo / Nickname</label>
+                  <label className="font-space text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Nome Completo / Nickname</label>
                   <div className="relative">
                     <Smile size={16} className="absolute left-3 top-3.5 text-white/40" />
                     <input 
@@ -460,7 +464,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-display text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Email</label>
+                  <label className="font-space text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Email</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-3 top-3.5 text-white/40" />
                     <input 
@@ -475,7 +479,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-display text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Password</label>
+                  <label className="font-space text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">Password</label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3 top-3.5 text-white/40" />
                     <input 
@@ -491,7 +495,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
 
                 {/* Avatar Selection Grid */}
                 <div className="flex flex-col gap-2 mt-1">
-                  <label className="font-display text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">
+                  <label className="font-space text-[9px] text-white/50 tracking-wider font-light uppercase pl-1">
                     Scegli il tuo Avatar musicale
                   </label>
                   <div className="grid grid-cols-6 gap-2 bg-white/5 p-2 rounded-lg border border-white/5">
@@ -511,7 +515,7 @@ export function ProfilePage({ userLikes, toggleLike }: { userLikes: string[], to
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 mt-4 bg-white/15 hover:bg-white/20 hover:text-white border border-white/10 text-white font-display tracking-widest text-xs uppercase font-medium rounded-lg transition-all hover:scale-[1.01] active:scale-100 flex items-center justify-center gap-2"
+                  className="w-full py-3 mt-4 bg-white/15 hover:bg-white/20 hover:text-white border border-white/10 text-white font-space tracking-widest text-xs uppercase font-medium rounded-lg transition-all hover:scale-[1.01] active:scale-100 flex items-center justify-center gap-2"
                 >
                   {loading ? 'CREAZIONE ACCOUNT...' : 'REGISTRATI'}
                   <ArrowRight size={14} />

@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate, useParams
 import { Play, Pause, Heart, Share2, Menu as MenuIcon, Mic, ListMusic, Disc3, LogIn, LogOut, User as UserIcon, Home, ChevronLeft, ChevronRight, ArrowLeft, SkipBack, SkipForward, Radio, MoreHorizontal, Link2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { PlayerProvider, usePlayer } from './contexts/PlayerContext';
 import { db } from './lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { InfiniteCarousel } from './components/InfiniteCarousel';
@@ -19,6 +20,16 @@ import SongRowItem from './components/SongRowItem';
 import DjSetStackSwipe from './components/DjSetStackSwipe';
 import TracksBottomSheet from './components/TracksBottomSheet';
 import PlayerTicker from './components/PlayerTicker';
+
+// ==========================================
+// VIEW IMPORTS (From src/views/)
+// ==========================================
+import SinglePodcastView from './views/SinglePodcastView';
+import SingleDjSetView from './views/SingleDjSetView';
+import SingleDjSetTrackView from './views/SingleDjSetTrackView';
+import SingleSongView from './views/SingleSongView';
+import SinglePlaylistView from './views/SinglePlaylistView';
+import { PodcastEpisodePlayerPage as SinglePodcastEpisodeView } from './views/PodcastEpisodePlayerPage';
 
 // ==========================================
 // DATA IMPORTS & RE-EXPORTS (From src/data/)
@@ -107,7 +118,8 @@ const getBentoConfig = (index: number, total: number) => {
   };
 };
 
-function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
+function PlaylistView() {
+  const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
 
   return (
@@ -116,7 +128,7 @@ function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
-          <h1 className="font-display text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
+          <h1 className="font-space text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
             Playlist
           </h1>
           <p className="font-sans text-xs md:text-sm text-white/50 mt-2">
@@ -127,7 +139,7 @@ function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
 
         {/* Section title for Playlists */}
         <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3 text-left">
-          <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+          <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
             Curated Playlists
           </h2>
         </div>
@@ -170,7 +182,7 @@ function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
         {MUSIC_PLAYLISTS.length > 3 && (
           <div className="mt-8 pb-44 md:pb-32">
             <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3 text-left">
-              <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+              <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
                 Altre Playlist Consigliate
               </h2>
             </div>
@@ -203,7 +215,8 @@ function PlaylistView({ isPlaying, togglePlay, currentTrackUrl }: any) {
   );
 }
 
-function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
+function PodcastView() {
+  const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
 
   return (
@@ -212,7 +225,7 @@ function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
-          <h1 className="font-display text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
+          <h1 className="font-space text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
             Podcast
           </h1>
           <p className="font-sans text-xs md:text-sm text-white/50 mt-2">
@@ -223,7 +236,7 @@ function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
 
         {/* Section title for Podcasts */}
         <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3 text-left">
-          <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+          <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
             Top Podcast
           </h2>
         </div>
@@ -265,7 +278,7 @@ function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
         {PODCAST_ITEMS.length > 3 && (
           <div className="mt-8 pb-44 md:pb-32">
             <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3 text-left">
-              <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+              <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
                 Altri Podcast
               </h2>
             </div>
@@ -297,7 +310,8 @@ function PodcastView({ isPlaying, togglePlay, currentTrackUrl }: any) {
   );
 }
 
-function DjSetView({ isPlaying, togglePlay, currentTrackUrl }: any) {
+function DjSetView() {
+  const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -338,7 +352,7 @@ function DjSetView({ isPlaying, togglePlay, currentTrackUrl }: any) {
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 pb-44 md:pb-32 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
-          <h1 className="font-display text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
+          <h1 className="font-space text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
             Dj Set
           </h1>
           <p className="font-sans text-xs md:text-sm text-white/50 mt-2">
@@ -365,7 +379,8 @@ function DjSetView({ isPlaying, togglePlay, currentTrackUrl }: any) {
 
 
 
-function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
+function ProgrammiView() {
+  const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
 
   return (
@@ -374,7 +389,7 @@ function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
-          <h1 className="font-display text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
+          <h1 className="font-space text-[24px] sm:text-[28px] text-white tracking-widest uppercase font-bold">
             Programmi
           </h1>
           <p className="font-sans text-xs md:text-sm text-white/50 mt-2">
@@ -385,7 +400,7 @@ function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
 
         {/* Section title for Programmi */}
         <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3 text-left">
-          <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+          <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
             Top Programmi
           </h2>
         </div>
@@ -434,7 +449,7 @@ function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
         {PROGRAMMI_ITEMS.length > 2 && (
           <div className="mt-8 pb-44 md:pb-32">
             <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3 text-left">
-              <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+              <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
                 Altri Programmi
               </h2>
             </div>
@@ -473,7 +488,8 @@ function ProgrammiView({ isPlaying, togglePlay, currentTrackUrl }: any) {
   );
 }
 
-function MusikTalkView({ isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike }: any) {
+function MusikTalkView() {
+  const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
   const navigate = useNavigate();
   const [bgUrl] = useState(() => "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(5).jpg");
 
@@ -504,7 +520,7 @@ function MusikTalkView({ isPlaying, togglePlay, currentTrackUrl, userLikes, togg
               <img 
                 src={bgUrl} 
                 alt="" 
-                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute -inset-4 bg-[#ff2e55]/10 blur-xl -z-10 rounded-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
@@ -513,12 +529,12 @@ function MusikTalkView({ isPlaying, togglePlay, currentTrackUrl, userLikes, togg
             {/* Right Information */}
             <div className="flex flex-col flex-1 justify-center py-1">
               <div className="flex items-center justify-center md:justify-start gap-3">
-                <span className="text-[10px] font-bold tracking-widest text-[#ff2e55] uppercase font-display bg-[#ff2e55]/10 px-3 py-1 rounded-full">
+                <span className="text-[10px] font-bold tracking-widest text-[#ff2e55] uppercase font-space bg-[#ff2e55]/10 px-3 py-1 rounded-full">
                   ESCLUSIVA RADIO AMBLÈ
                 </span>
               </div>
               
-              <h1 className="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-3">
+              <h1 className="font-space text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-3">
                 Musik & Talk
               </h1>
               
@@ -554,7 +570,7 @@ function MusikTalkView({ isPlaying, togglePlay, currentTrackUrl, userLikes, togg
 
           {/* Section Divider & Title */}
           <div className="flex items-center justify-between mt-12 mb-6 border-b border-white/5 pb-4">
-            <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-wider flex items-center gap-1.5 uppercase">
+            <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-wider flex items-center gap-1.5 uppercase">
               <span>Le Puntate</span>
               <ChevronRight size={18} className="text-[#ff2e55]" />
             </h2>
@@ -587,11 +603,12 @@ function MusikTalkView({ isPlaying, togglePlay, currentTrackUrl, userLikes, togg
   );
 }
 
-function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLike, currentTrackUrl }: any) {
-  const { episodeId } = useParams();
+function SingleMusikTalkEpisodeView() {
+  const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const epIndex = MUSIK_TALK_EPISODES.findIndex(ep => ep.id === Number(episodeId));
+  const epIndex = MUSIK_TALK_EPISODES.findIndex(ep => ep.id === Number(id));
   const ep = MUSIK_TALK_EPISODES[epIndex];
 
   if (!ep) return null;
@@ -600,39 +617,27 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
   const itemId = `musiktalk_ep:${ep.id}`;
   const isLiked = userLikes?.includes(itemId) || false;
   const trackIsPlaying = isPlaying && currentTrackUrl === ep.audioUrl;
-
-  // Background videos pool
-  const videosPool = [
-    "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/phoenix/_users_cdf7ab6c-aee8-436f-8342-c98879331890_generated_d4aa45e7-83be-4318-b00a-3684afdd7624_generated_video.MP4",
-    "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/phoenix/_users_cdf7ab6c-aee8-436f-8342-c98879331890_generated_ed66afeb-20ab-4bf2-8ad6-016d76d9fdfe_generated_video.MP4",
-    "https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/phoenix/_users_cdf7ab6c-aee8-436f-8342-c98879331890_generated_b85bbea7-d3d7-4d23-8397-cc797d40db6d_generated_video.MP4"
-  ];
-
-  // Randomly select one video on load/mount
-  const [randomVideoUrl] = useState(() => {
-    const randomIdx = Math.floor(Math.random() * videosPool.length);
-    return videosPool[randomIdx];
-  });
+  const isVideo = bgUrl?.toLowerCase().endsWith('.mp4');
 
   const goToPrev = () => {
     if (epIndex > 0) {
-      navigate(`/programmi/musik-talk/${MUSIK_TALK_EPISODES[epIndex - 1].id}`, { replace: true });
+      const prevEp = MUSIK_TALK_EPISODES[epIndex - 1];
+      playTrack(prevEp.audioUrl);
+      navigate(`/programmi/musik-talk/${prevEp.id}`, { replace: true });
     }
   };
 
   const goToNext = () => {
     if (epIndex < MUSIK_TALK_EPISODES.length - 1) {
-      navigate(`/programmi/musik-talk/${MUSIK_TALK_EPISODES[epIndex + 1].id}`, { replace: true });
+      const nextEp = MUSIK_TALK_EPISODES[epIndex + 1];
+      playTrack(nextEp.audioUrl);
+      navigate(`/programmi/musik-talk/${nextEp.id}`, { replace: true });
     }
   };
 
   useEffect(() => {
-    if (currentTrackUrl !== ep.audioUrl || !isPlaying) {
-      if (currentTrackUrl !== ep.audioUrl) {
-        togglePlay(ep.audioUrl);
-      } else if (!isPlaying) {
-        togglePlay(ep.audioUrl);
-      }
+    if (currentTrackUrl !== ep.audioUrl) {
+      playTrack(ep.audioUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ep.audioUrl]);
@@ -641,32 +646,37 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
     <motion.main
       className="relative z-30 w-full h-full"
     >
-      {/* Immersive background video */}
+      {/* Background (Episode cover image) */}
       <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        <video
-          src={randomVideoUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        {/* Color tone blend overlays matching Scheggia style */}
-        <div className="absolute inset-0 bg-red-950/20 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-black/65 pointer-events-none"></div>
+        {isVideo ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            src={bgUrl}
+          />
+        ) : (
+          <img 
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            src={bgUrl}
+            alt=""
+            referrerPolicy="no-referrer"
+          />
+        )}
+        {/* Color tone blend overlays matching single song/podcast style */}
+        <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
+        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
       </div>
 
+      {/* The Player Box */}
       <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker 
-          text="TELA Collection · German Aerospace-Grade Polycarbonate · Lifetime Warranty · Free Return · 100 Days Try Me Out · Lego Concept — Replace. Recycle. Personalise. · Spacious & Washable Interior · Wide Handle — More Space. More Control. · Canvas Texture · Serial Number — Identity. · Free Shipping · Help Us Close the Loop · Pre-Order 30% Off — Code LOVE30 · Aesthetics & Integrity Over Exclusivity · A New Chapter Is About to Begin" 
-          duration={55}
-          href="https://www.phoenix-voyage.com/"
-          ctaText="WWW.PHOENIX-VOYAGE.COM"
-        />
+        <PlayerTicker />
         <div 
           className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
         >
-          <h2 className="font-display text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
+          <h2 className="font-space text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
             {ep.title}
           </h2>
 
@@ -676,14 +686,11 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
 
           <div className="flex items-center justify-between w-full max-w-[320px]">
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleLike(itemId);
-              }}
-              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-[#ff2e55]' : 'text-white/80'}`}
+              onClick={() => toggleLike(itemId)}
+              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
               aria-label="Like"
             >
-              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-current" : ""} />
+              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
             </button>
 
             <div className="flex items-center justify-center gap-4 w-full">
@@ -737,892 +744,12 @@ function SingleMusikTalkEpisodeView({ isPlaying, togglePlay, userLikes, toggleLi
   );
 }
 
-function SinglePodcastEpisodeView({ isPlaying, togglePlay, userLikes, toggleLike, currentTrackUrl }: any) {
-  const { id, songIndex } = useParams();
-  const navigate = useNavigate();
-  
-  const playlist = PODCAST_ITEMS.find(p => p.id === Number(id));
-  const sIndex = Number(songIndex);
-  const songsList = getPodcastSongs(Number(id));
-  const song = songsList[sIndex];
-  
-  const [fallbackBg] = useState(() => playlist?.imageUrl || getRandomBackground());
-  const bgUrl = song?.backgroundUrl || fallbackBg;
-
-  if (!playlist || !song) return null;
-
-  const songAudio = song.audioUrl;
-  const itemId = `podcast_episode:${playlist.id}:${songIndex}`;
-  const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
-
-  const goToPrev = () => {
-    if (sIndex > 0) navigate(`/podcast/${playlist.id}/song/${sIndex - 1}`, { replace: true });
-  };
-
-  const goToNext = () => {
-    if (sIndex < songsList.length - 1) navigate(`/podcast/${playlist.id}/song/${sIndex + 1}`, { replace: true });
-  };
-
-  useEffect(() => {
-    if (currentTrackUrl !== songAudio || !isPlaying) {
-      if (currentTrackUrl !== songAudio) {
-        togglePlay(songAudio);
-      } else if (!isPlaying) {
-        togglePlay(songAudio);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songAudio]);
-
-  return (
-    <motion.main
-      className="relative z-30 w-full h-full"
-    >
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-          />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
-      </div>
-
-      <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
-        >
-          <h2 className="font-display text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
-            {song.title}
-          </h2>
-          <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-2 mb-4">
-            {playlist.title} • {playlist.author}
-          </p>
-
-          <div className="flex items-center justify-between w-full max-w-[320px]">
-            <button 
-              onClick={() => toggleLike(itemId)}
-              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
-              aria-label="Like"
-            >
-              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
-            </button>
-
-            <div className="flex items-center justify-center gap-4 w-full">
-              <button 
-                onClick={goToPrev}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${sIndex === 0 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={sIndex === 0}
-              >
-                <SkipBack size={24} strokeWidth={2} />
-              </button>
-
-              <button 
-                onClick={() => togglePlay(songAudio)}
-                className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
-                aria-label={trackIsPlaying ? "Pause" : "Play"}
-              >
-                {trackIsPlaying ? (
-                  <Pause size={28} strokeWidth={2} className="fill-black" />
-                ) : (
-                  <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
-                )}
-              </button>
-
-              <button 
-                onClick={goToNext}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${sIndex === songsList.length - 1 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={sIndex === songsList.length - 1}
-              >
-                <SkipForward size={24} strokeWidth={2} />
-              </button>
-            </div>
-
-            <button 
-              className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
-              aria-label="Share"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: `${song.title} - ${playlist.title}`, url: window.location.href })
-                    .catch(e => {
-                      if (e.name !== 'AbortError') console.error("Share failed", e);
-                    });
-                }
-              }}
-            >
-              <Share2 size={22} strokeWidth={1} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.main>
-  );
-}
-
-function SinglePodcastView({ isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike }: any) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const playlist = PODCAST_ITEMS.find(p => p.id === Number(id));
-  const songsList = getPodcastSongs(Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
-
-  if (!playlist) return null;
-
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
-
-  return (
-    <motion.main
-      className="absolute inset-0 z-30 w-full h-full bg-[#0a0a0a] overflow-hidden"
-    >
-      {/* Immersive Background */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-          />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-950/30 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-black/75 pointer-events-none"></div>
-      </div>
-
-      {/* Content Area */}
-      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 pt-28 md:pt-36 md:pl-[104px]">
-        <div className="w-full max-w-[1200px] mx-auto pb-44">
-          
-          {/* Hero Section */}
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-            {/* Left Cover Artwork */}
-            <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border border-white/10 shrink-0 group">
-              <img 
-                src={playlist.imageUrl} 
-                alt="" 
-                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute -inset-4 bg-[#ff2e55]/10 blur-xl -z-10 rounded-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
-            </div>
-
-            {/* Right Information */}
-            <div className="flex flex-col flex-1 justify-center py-1">
-              <div className="flex items-center justify-center md:justify-start gap-3">
-                <span className="text-[10px] font-bold tracking-widest text-[#ff2e55] uppercase font-display bg-[#ff2e55]/10 px-3 py-1 rounded-full">
-                  {playlist.tag || "PODCAST ESCLUSIVO"}
-                </span>
-              </div>
-              
-              <h1 className="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-3">
-                {playlist.title}
-              </h1>
-              
-              <p className="font-sans text-sm sm:text-base text-white/70 mt-2">
-                Creato da <span className="font-semibold text-white">{playlist.author}</span>
-              </p>
-
-              <p className="font-sans text-xs sm:text-sm text-white/50 mt-3 leading-relaxed max-w-2xl">
-                {playlist.teaser || "L'energia irriverente e imprevedibile formato podcast, firmato con ospiti d'eccezione."}
-              </p>
-
-              {/* Action Buttons Row */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-                <button 
-                  onClick={() => togglePlay(songsList[0]?.audioUrl)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
-                >
-                  {isPlaying && songsList.some(s => s.audioUrl === currentTrackUrl) ? (
-                    <>
-                      <Pause size={16} className="fill-black text-black" />
-                      <span>PAUSA</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play size={16} className="ml-0.5 fill-black text-black" />
-                      <span>ASCOLTA L'ULTIMA PUNTATA</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Section Divider & Title */}
-          <div className="flex items-center justify-between mt-12 mb-6 border-b border-white/5 pb-4">
-            <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-wider flex items-center gap-1.5 uppercase">
-              <span>Le Puntate</span>
-              <ChevronRight size={18} className="text-[#ff2e55]" />
-            </h2>
-            <span className="text-xs text-white/40 font-sans">{songsList.length} puntate</span>
-          </div>
-
-          {/* Podcast Episodes List */}
-          <div className="flex flex-col gap-3">
-            {songsList.map((song, i) => (
-              <SongRowItem
-                key={i}
-                song={song}
-                index={i}
-                playlistId={playlist.id}
-                playlistType="podcast"
-                isPlaying={isPlaying}
-                currentTrackUrl={currentTrackUrl}
-                onPlayToggle={togglePlay}
-                userLikes={userLikes}
-                onLikeToggle={toggleLike}
-                playlistImage={playlist.imageUrl}
-                author={playlist.author}
-              />
-            ))}
-          </div>
-
-        </div>
-      </div>
-    </motion.main>
-  );
-}
-
-function SingleDjSetTrackView({ isPlaying, togglePlay, userLikes, toggleLike, currentTrackUrl }: any) {
-  const { id, songIndex } = useParams();
-  const navigate = useNavigate();
-  const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
-  
-  const sIndex = Number(songIndex);
-  const songsList = getDjSetSongs(Number(id));
-  const song = songsList[sIndex];
-
-  if (!playlist || !song) return null;
-
-  const songAudio = song.audioUrl;
-  const itemId = `djset_track:${playlist.id}:${songIndex}`;
-  const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
-
-  const goToPrev = () => {
-    if (sIndex > 0) navigate(`/djset/${playlist.id}/song/${sIndex - 1}`, { replace: true });
-  };
-
-  const goToNext = () => {
-    if (sIndex < songsList.length - 1) navigate(`/djset/${playlist.id}/song/${sIndex + 1}`, { replace: true });
-  };
-
-  useEffect(() => {
-    if (currentTrackUrl !== songAudio || !isPlaying) {
-      if (currentTrackUrl !== songAudio) {
-        togglePlay(songAudio);
-      } else if (!isPlaying) {
-        togglePlay(songAudio);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songAudio]);
-
-  return (
-    <motion.main
-      className="relative z-30 w-full h-full"
-    >
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-          />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
-      </div>
-
-      <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-5 flex flex-col shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
-        >
-          <div className="flex items-center gap-4 w-full mb-4">
-            {playlist.id === 1 ? (
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-white/10 shrink-0">
-                <img 
-                  src={playlist.imageUrl} 
-                  alt="AID Logo" 
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            ) : null}
-            <div className={`flex-1 min-w-0 ${playlist.id !== 1 ? 'text-center' : 'text-left'}`}>
-              <h2 className="font-display text-[18px] sm:text-[22px] text-white tracking-widest leading-tight truncate">
-                {song.title}
-              </h2>
-              <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/50 uppercase mt-1.5 truncate">
-                {playlist.title} • {playlist.author}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between w-full max-w-[320px]">
-            <button 
-              onClick={() => toggleLike(itemId)}
-              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
-              aria-label="Like"
-            >
-              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
-            </button>
-
-            <div className="flex items-center justify-center gap-4 w-full">
-              <button 
-                onClick={goToPrev}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${sIndex === 0 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={sIndex === 0}
-              >
-                <SkipBack size={24} strokeWidth={2} />
-              </button>
-
-              <button 
-                onClick={() => togglePlay(songAudio)}
-                className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
-                aria-label={trackIsPlaying ? "Pause" : "Play"}
-              >
-                {trackIsPlaying ? (
-                  <Pause size={28} strokeWidth={2} className="fill-black" />
-                ) : (
-                  <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
-                )}
-              </button>
-
-              <button 
-                onClick={goToNext}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${sIndex === songsList.length - 1 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={sIndex === songsList.length - 1}
-              >
-                <SkipForward size={24} strokeWidth={2} />
-              </button>
-            </div>
-
-            <button 
-              className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
-              aria-label="Share"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: `${song.title} - ${playlist.title}`, url: window.location.href })
-                    .catch(e => {
-                      if (e.name !== 'AbortError') console.error("Share failed", e);
-                    });
-                }
-              }}
-            >
-              <Share2 size={22} strokeWidth={1} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.main>
-  );
-}
-
-function SingleDjSetView({ isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike }: any) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  if (!playlist) return null;
-
-  const songsList = getDjSetSongs(playlist.id);
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
-
-  return (
-    <motion.main
-      className="absolute inset-0 z-30 w-full h-full bg-[#0a0a0a] overflow-hidden"
-    >
-      {/* Immersive Background */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-          />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-950/30 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-black/75 pointer-events-none"></div>
-      </div>
-
-      {/* Content Area */}
-      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 pt-28 md:pt-36 md:pl-[104px]">
-        <div className="w-full max-w-[1200px] mx-auto pb-44">
-          
-          {/* Hero Section */}
-          {playlist.id !== 1 ? (
-            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-              {/* Left Cover Artwork */}
-              <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border border-white/10 shrink-0 group">
-                <img 
-                  src={playlist.imageUrl} 
-                  alt="" 
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute -inset-4 bg-[#ff2e55]/10 blur-xl -z-10 rounded-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
-              </div>
-
-              {/* Right Information */}
-              <div className="flex flex-col flex-1 justify-center py-1">
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                  <span className="text-[10px] font-bold tracking-widest text-[#ff2e55] uppercase font-display bg-[#ff2e55]/10 px-3 py-1 rounded-full">
-                    {playlist.tag || "DJ SET ESCLUSIVO"}
-                  </span>
-                </div>
-                
-                <h1 className="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-3">
-                  {playlist.title}
-                </h1>
-                
-                <p className="font-sans text-sm sm:text-base text-white/70 mt-2">
-                  Mixato da <span className="font-semibold text-white">{playlist.author}</span>
-                </p>
-
-                <p className="font-sans text-xs sm:text-sm text-white/50 mt-3 leading-relaxed max-w-2xl">
-                  {playlist.teaser || "Groove ricercati e selezioni d'eccezione firmate dai migliori artisti della scena per Radio Amblè."}
-                </p>
-
-                {/* Action Buttons Row */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-                  <button 
-                    onClick={() => togglePlay(songsList[0]?.audioUrl)}
-                    className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
-                  >
-                    {isPlaying && songsList.some(s => s.audioUrl === currentTrackUrl) ? (
-                      <>
-                        <Pause size={16} className="fill-black text-black" />
-                        <span>PAUSA</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={16} className="ml-0.5 fill-black text-black" />
-                        <span>ASCOLTA</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Section Divider & Title */}
-          {playlist.id !== 1 && (
-            <div 
-              onClick={() => playlist.id === 1 && setIsSheetOpen(true)}
-              className={`flex items-center justify-between mt-12 mb-6 border-b border-white/5 pb-4 ${playlist.id === 1 ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-            >
-              <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-wider flex items-center gap-1.5 uppercase">
-                <span>I brani del set</span>
-                <ChevronRight size={18} className="text-[#ff2e55]" />
-              </h2>
-              {playlist.id === 1 ? (
-                <span className="text-xs font-bold text-[#ff2e55] font-space tracking-wider flex items-center gap-1">
-                  <ListMusic size={14} />
-                  MOSTRA ({songsList.length})
-                </span>
-              ) : (
-                <span className="text-xs text-white/40 font-sans">{songsList.length} brani</span>
-              )}
-            </div>
-          )}
-
-          {/* DJ Set Tracks List */}
-          {playlist.id === 1 ? (
-            <div className="flex flex-col items-center">
-              {/* Title & Description inserted BEFORE the cards stack player, styled to be smaller/less impactful */}
-              <div className="mb-6 text-center max-w-lg px-4 flex flex-col items-center">
-                <span className="text-[9px] font-bold tracking-widest text-[#ff2e55]/80 uppercase font-display bg-[#ff2e55]/5 px-2.5 py-0.5 rounded-full w-fit">
-                  {playlist.tag || "MIX ESCLUSIVO"}
-                </span>
-
-                <h1 className="font-display text-xl sm:text-2xl font-black text-white tracking-tight mt-2.5">
-                  {playlist.title}
-                </h1>
-
-                <p className="font-sans text-xs text-white/60 mt-1">
-                  Mixato da <span className="font-medium text-white/80">{playlist.author}</span>
-                </p>
-
-                <p className="font-sans text-[11px] sm:text-xs text-white/40 mt-2 leading-relaxed max-w-sm">
-                  {playlist.teaser || "I migliori allievi e docenti della scuola A.i.D. firmano una selezione elettronica tagliente e imprevedibile."}
-                </p>
-              </div>
-
-              <DjSetStackSwipe
-                songsList={songsList}
-                playlist={playlist}
-                isPlaying={isPlaying}
-                currentTrackUrl={currentTrackUrl}
-                onPlayToggle={togglePlay}
-                userLikes={userLikes}
-                onLikeToggle={toggleLike}
-                onOpenSheet={() => setIsSheetOpen(true)}
-              />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {songsList.map((song, i) => (
-                <SongRowItem
-                  key={i}
-                  song={song}
-                  index={i}
-                  playlistId={playlist.id}
-                  playlistType="djset"
-                  isPlaying={isPlaying}
-                  currentTrackUrl={currentTrackUrl}
-                  onPlayToggle={togglePlay}
-                  userLikes={userLikes}
-                  onLikeToggle={toggleLike}
-                  playlistImage={playlist.imageUrl}
-                  author={playlist.author}
-                />
-              ))}
-            </div>
-          )}
-
-        </div>
-      </div>
-
-      {/* Slide-up Tracks Bottom Sheet */}
-      <TracksBottomSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        songsList={songsList}
-        playlist={playlist}
-        isPlaying={isPlaying}
-        currentTrackUrl={currentTrackUrl}
-        onPlayToggle={togglePlay}
-        userLikes={userLikes}
-        onLikeToggle={toggleLike}
-      />
-    </motion.main>
-  );
-}
-
-function SingleSongView({ isPlaying, togglePlay, userLikes, toggleLike, currentTrackUrl }: any) {
-  const { id, songIndex } = useParams();
-  const navigate = useNavigate();
-  const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
-  
-  const sIndex = Number(songIndex);
-  const songs = playlist ? getPlaylistSongs(playlist.id) : [];
-  const song = songs[sIndex];
-
-  if (!playlist || !song) return null;
-
-  const songAudio = song.audioUrl;
-  const itemId = `playlist_song:${playlist.id}:${songIndex}`;
-  const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
-
-  const goToPrev = () => {
-    if (sIndex > 0) navigate(`/playlist/${playlist.id}/song/${sIndex - 1}`, { replace: true });
-  };
-
-  const goToNext = () => {
-    if (sIndex < songs.length - 1) navigate(`/playlist/${playlist.id}/song/${sIndex + 1}`, { replace: true });
-  };
-
-  useEffect(() => {
-    if (currentTrackUrl !== songAudio || !isPlaying) {
-      if (currentTrackUrl !== songAudio) {
-        togglePlay(songAudio);
-      } else if (!isPlaying) {
-        togglePlay(songAudio);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songAudio]);
-
-  return (
-    <motion.main
-      className="relative z-30 w-full h-full"
-    >
-      {/* Background (Specific to the single song) */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-          />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
-      </div>
-
-      {/* The Player Box */}
-      <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
-        >
-          <h2 className="font-display text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
-            {song.title}
-          </h2>
-          
-          <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-2 mb-4">
-            {playlist.title} • {playlist.author}
-          </p>
-
-          <div className="flex items-center justify-between w-full max-w-[320px]">
-            <button 
-              onClick={() => toggleLike(itemId)}
-              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
-              aria-label="Like"
-            >
-              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
-            </button>
-
-            <div className="flex items-center justify-center gap-4 w-full">
-              <button 
-                onClick={goToPrev}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${sIndex === 0 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={sIndex === 0}
-              >
-                <SkipBack size={24} strokeWidth={2} />
-              </button>
-
-              <button 
-                onClick={() => togglePlay(songAudio)}
-                className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
-                aria-label={trackIsPlaying ? "Pause" : "Play"}
-              >
-                {trackIsPlaying ? (
-                  <Pause size={28} strokeWidth={2} className="fill-black" />
-                ) : (
-                  <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
-                )}
-              </button>
-
-              <button 
-                onClick={goToNext}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${sIndex === songs.length - 1 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={sIndex === songs.length - 1}
-              >
-                <SkipForward size={24} strokeWidth={2} />
-              </button>
-            </div>
-
-            <button 
-              className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
-              aria-label="Share"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: `${song.title} - ${playlist.title}`, url: window.location.href })
-                    .catch(e => {
-                      if (e.name !== 'AbortError') console.error("Share failed", e);
-                    });
-                }
-              }}
-            >
-              <Share2 size={22} strokeWidth={1} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.main>
-  );
-}
-
-function SinglePlaylistView({ isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike }: any) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
-
-  if (!playlist) return null;
-
-  const songs = getPlaylistSongs(playlist.id);
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
-
-  return (
-    <motion.main
-      className="absolute inset-0 z-30 w-full h-full bg-[#0a0a0a] overflow-hidden"
-    >
-      {/* Immersive Background */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-          />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-950/40 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-black/75 pointer-events-none"></div>
-      </div>
-
-      {/* Main Content Scroll Container */}
-      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 pt-28 md:pt-36 md:pl-[104px]">
-        <div className="w-full max-w-[1200px] mx-auto pb-44">
-          
-          {/* Hero Section / Playlist Spotlight Banner */}
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-            {/* Left: Giant Cover Art with Glow */}
-            <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border border-white/10 shrink-0 group">
-              <img 
-                src={playlist.imageUrl} 
-                alt="" 
-                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute -inset-4 bg-[#ff2e55]/10 blur-xl -z-10 rounded-3xl opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
-            </div>
-
-            {/* Right: Metadata and Controls */}
-            <div className="flex flex-col flex-1 justify-center py-1">
-              <div className="flex items-center justify-center md:justify-start gap-3">
-                <span className="text-[10px] font-bold tracking-widest text-[#ff2e55] uppercase font-display bg-[#ff2e55]/10 px-3 py-1 rounded-full">
-                  {playlist.tag || "PLAYLIST ESCLUSIVA"}
-                </span>
-              </div>
-              
-              <h1 className="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight mt-3">
-                {playlist.title}
-              </h1>
-              
-              <p className="font-sans text-sm sm:text-base text-white/70 mt-2">
-                Curata da <span className="font-semibold text-white">{playlist.author}</span>
-              </p>
-
-              <p className="font-sans text-xs sm:text-sm text-white/50 mt-3 leading-relaxed max-w-2xl">
-                {playlist.teaser || "La potente ed elettronica selezione musicale ricca di hit storiche, influenze rock-dance e ritmi inconfondibili."}
-              </p>
-
-              {/* Action Buttons Row */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-                <button 
-                  onClick={() => togglePlay(songs[0]?.audioUrl)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songs.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
-                >
-                  {isPlaying && songs.some(s => s.audioUrl === currentTrackUrl) ? (
-                    <>
-                      <Pause size={16} className="fill-black text-black" />
-                      <span>PAUSA</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play size={16} className="ml-0.5 fill-black text-black" />
-                      <span>ASCOLTA</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Section Divider & Title matching third image */}
-          <div className="flex items-center justify-between mt-12 mb-6 border-b border-white/5 pb-4">
-            <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-wider flex items-center gap-1.5 uppercase">
-              <span>I brani del momento</span>
-              <ChevronRight size={18} className="text-[#ff2e55]" />
-            </h2>
-            <span className="text-xs text-white/40 font-sans">{songs.length} brani</span>
-          </div>
-
-          {/* Custom Tracklist Songs */}
-          <div className="flex flex-col gap-3">
-            {songs.map((song, i) => (
-              <SongRowItem
-                key={i}
-                song={song}
-                index={i}
-                playlistId={playlist.id}
-                playlistType="playlist"
-                isPlaying={isPlaying}
-                currentTrackUrl={currentTrackUrl}
-                onPlayToggle={togglePlay}
-                userLikes={userLikes}
-                onLikeToggle={toggleLike}
-                playlistImage={playlist.imageUrl}
-                author={playlist.author}
-              />
-            ))}
-          </div>
-
-        </div>
-      </div>
-    </motion.main>
-  );
-}
-
-function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
+function HomeView() {
+  const { isPlaying, userLikes, togglePlay, toggleLike, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
   const itemId = 'radio-amble-live';
   const isLiked = userLikes?.includes(itemId) || false;
+  const isStreamPlaying = isPlaying && (currentTrackUrl === "https://mqugxowc-lbmedia.radioca.st/stream" || currentTrackUrl === null);
   return (
     <motion.main
       className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-between pt-24 pb-[96px] md:pb-[32px] px-6 overflow-hidden"
@@ -1664,11 +791,11 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
             </button>
 
             <button 
-              onClick={togglePlay}
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform ${isPlaying ? 'play-pulse' : ''}`}
-              aria-label={isPlaying ? "Pause" : "Play"}
+              onClick={() => togglePlay()}
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform ${isStreamPlaying ? 'play-pulse' : ''}`}
+              aria-label={isStreamPlaying ? "Pause" : "Play"}
             >
-              {isPlaying ? ( 
+              {isStreamPlaying ? ( 
                 <Pause className="w-6 h-6 sm:w-7 sm:h-7 fill-black" strokeWidth={2} /> 
               ) : ( 
                 <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-black" strokeWidth={2} /> 
@@ -1698,11 +825,7 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
 
   function AppContent() {
   const { user, signIn, logOut } = useAuth();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrackUrl, setCurrentTrackUrl] = useState<string | null>(null);
-  const [userLikes, setUserLikes] = useState<string[]>([]);
   const [currentHomeBgIndex, setCurrentHomeBgIndex] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -1790,100 +913,23 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
     return () => clearInterval(interval);
   }, [isHome]);
 
-  const streamUrl = "https://mqugxowc-lbmedia.radioca.st/stream";
-
-  useEffect(() => {
-    async function fetchUserLikes() {
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        try {
-          const snap = await getDoc(userRef);
-          if (snap.exists()) {
-            const data = snap.data();
-            setUserLikes(data.likes || []);
-          } else {
-            setUserLikes([]);
-          }
-        } catch (err) {
-          console.error("Failed to load user likes", err);
-          setUserLikes([]);
-        }
-      } else {
-        setUserLikes([]);
-      }
-    }
-    fetchUserLikes();
-  }, [user]);
-
-  const togglePlay = (trackUrl: string = streamUrl) => {
-    if (!audioRef.current) return;
-    
-    if (isPlaying && currentTrackUrl === trackUrl) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      if (currentTrackUrl !== trackUrl) {
-        if (trackUrl === streamUrl) {
-          audioRef.current.src = `${trackUrl}?cb=${Date.now()}`;
-        } else {
-          audioRef.current.src = trackUrl;
-        }
-        setCurrentTrackUrl(trackUrl);
-      }
-      
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          setIsPlaying(true);
-        }).catch(err => {
-          if (err.name !== 'AbortError' && err.name !== 'NotSupportedError') {
-            setIsPlaying(false);
-          }
-        });
-      } else {
-        setIsPlaying(true);
-      }
-    }
-  };
-
-  const handleToggleLike = async (itemId: string) => {
-    if (!user) {
-      navigate('/profile');
-      return;
-    }
-    
-    const exists = userLikes.includes(itemId);
-    let newLikes: string[];
-    if (exists) {
-      newLikes = userLikes.filter(id => id !== itemId);
-    } else {
-      newLikes = [...userLikes, itemId];
-    }
-    
-    setUserLikes(newLikes);
-    
-    const userRef = doc(db, 'users', user.uid);
-    try {
-      await updateDoc(userRef, { likes: newLikes });
-    } catch (e) {
-      console.error("Failed to update likes", e);
-      setUserLikes(userLikes); // revert state
-    }
-  };
-
   const handleBack = () => {
     const path = location.pathname;
     
     if (path.includes('/song/')) {
       const parentPath = path.substring(0, path.indexOf('/song/'));
       navigate(parentPath);
+    } else if (path.startsWith('/programmi/musik-talk/')) {
+      navigate('/programmi/musik-talk');
+    } else if (path === '/programmi/musik-talk') {
+      navigate('/programmi');
     } else if (path.startsWith('/playlist/')) {
       navigate('/playlist');
     } else if (path.startsWith('/podcast/')) {
       navigate('/podcast');
     } else if (path.startsWith('/djset/')) {
       navigate('/djset');
-    } else if (path === '/playlist' || path === '/podcast' || path === '/djset') {
+    } else if (path === '/playlist' || path === '/podcast' || path === '/djset' || path === '/programmi') {
       navigate('/');
     } else {
       if (window.history.length > 1) {
@@ -1940,11 +986,11 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
             />
             {/* Color tone blend overlays matching Scheggia style */}
             <div className="absolute inset-0 bg-red-950/20 mix-blend-multiply pointer-events-none"></div>
-            <div className="absolute inset-0 bg-black/55 pointer-events-none font-display"></div>
+            <div className="absolute inset-0 bg-black/55 pointer-events-none font-space"></div>
           </div>
         ) : (
           <>
-            {location.pathname !== '/programmi/musik-talk' && (
+            {!location.pathname.startsWith('/programmi/musik-talk') && (
               <video 
                 autoPlay 
                 loop 
@@ -2125,119 +1171,21 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
           onDragEnd={handleDragEnd}
         >
           <Routes location={location}>
-            <Route path="/" element={
-              <HomeView 
-                isPlaying={isPlaying && (currentTrackUrl === streamUrl || currentTrackUrl === null)} 
-                userLikes={userLikes} 
-                togglePlay={() => togglePlay(streamUrl)} 
-                toggleLike={handleToggleLike} 
-              />
-            } />
-            <Route path="/playlist" element={
-              <PlaylistView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/playlist/:id" element={
-              <SinglePlaylistView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/playlist/:id/song/:songIndex" element={
-              <SingleSongView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/podcast" element={
-              <PodcastView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/podcast/:id" element={
-              <SinglePodcastView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-              />
-            } />
-            <Route path="/podcast/:id/song/:songIndex" element={
-              <SinglePodcastEpisodeView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/djset" element={
-              <DjSetView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/djset/:id" element={
-              <SingleDjSetView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/djset/:id/song/:songIndex" element={
-              <SingleDjSetTrackView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/programmi" element={
-              <ProgrammiView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/programmi/musik-talk" element={
-              <MusikTalkView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                currentTrackUrl={currentTrackUrl} 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-              />
-            } />
-            <Route path="/programmi/musik-talk/:id" element={
-              <SingleMusikTalkEpisodeView 
-                isPlaying={isPlaying} 
-                togglePlay={togglePlay} 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-                currentTrackUrl={currentTrackUrl} 
-              />
-            } />
-            <Route path="/explore" element={
-              <ExploreView />
-            } />
-            <Route path="/profile" element={
-              <ProfilePage 
-                userLikes={userLikes} 
-                toggleLike={handleToggleLike} 
-              />
-            } />
+            <Route path="/" element={<HomeView />} />
+            <Route path="/playlist" element={<PlaylistView />} />
+            <Route path="/playlist/:id" element={<SinglePlaylistView />} />
+            <Route path="/playlist/:id/song/:songIndex" element={<SingleSongView />} />
+            <Route path="/podcast" element={<PodcastView />} />
+            <Route path="/podcast/:id" element={<SinglePodcastView />} />
+            <Route path="/podcast/:id/song/:songIndex" element={<SinglePodcastEpisodeView />} />
+            <Route path="/djset" element={<DjSetView />} />
+            <Route path="/djset/:id" element={<SingleDjSetView />} />
+            <Route path="/djset/:id/song/:songIndex" element={<SingleDjSetTrackView />} />
+            <Route path="/programmi" element={<ProgrammiView />} />
+            <Route path="/programmi/musik-talk" element={<MusikTalkView />} />
+            <Route path="/programmi/musik-talk/:id" element={<SingleMusikTalkEpisodeView />} />
+            <Route path="/explore" element={<ExploreView />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </motion.div>
@@ -2341,16 +1289,6 @@ function HomeView({ isPlaying, userLikes, togglePlay, toggleLike }: any) {
           <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/profile') ? 'text-white' : 'text-white/40'}`}>PROFILO</span>
         </button>
       </div>
-
-      <audio 
-        ref={audioRef} 
-        preload="none" 
-        onEnded={() => setIsPlaying(false)}
-        onError={(e) => {
-          if (!audioRef.current?.src || audioRef.current?.src === window.location.href) return;
-          setIsPlaying(false);
-        }}
-      ></audio>
     </div>
   );
 }
@@ -2359,7 +1297,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppContent />
+        <PlayerProvider>
+          <AppContent />
+        </PlayerProvider>
       </AuthProvider>
     </BrowserRouter>
   );

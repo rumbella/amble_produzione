@@ -1,27 +1,32 @@
 import React from 'react';
+import { usePlayer } from '../contexts/PlayerContext';
 
 export interface SpotlightTracksSectionProps {
   title?: string;
   subtitle?: string;
   tracks: any[];
-  isPlaying: boolean;
-  togglePlay: (url: string) => void;
-  currentTrackUrl: string | null;
+  isPlaying?: boolean;
+  togglePlay?: (url: string) => void;
+  currentTrackUrl?: string | null;
 }
 
 export function SpotlightTracksSection({ 
   title = "Spotlight", 
   subtitle = "Brani selezionati da Radio Amblè", 
   tracks = [], 
-  isPlaying, 
-  togglePlay, 
-  currentTrackUrl 
+  isPlaying: propIsPlaying, 
+  togglePlay: propTogglePlay, 
+  currentTrackUrl: propCurrentTrackUrl 
 }: SpotlightTracksSectionProps) {
+  const player = usePlayer();
+  const isPlaying = propIsPlaying ?? player.isPlaying;
+  const togglePlay = propTogglePlay ?? player.togglePlay;
+  const currentTrackUrl = propCurrentTrackUrl ?? player.currentTrackUrl;
   return (
     <div className="w-full flex flex-col mb-16 text-left">
       <div className="flex items-center justify-between mb-2 border-b border-white/5 pb-3">
         <div className="flex items-center gap-2">
-          <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+          <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
             {title}
           </h2>
           {/* Info circle icon */}
@@ -45,7 +50,7 @@ export function SpotlightTracksSection({
             </div>
           </div>
         </div>
-        <button className="text-xs text-[#ff2e55] font-display tracking-widest uppercase hover:underline transition-all">
+        <button className="text-xs text-[#ff2e55] font-space tracking-widest uppercase hover:underline transition-all">
           Vedi tutto
         </button>
       </div>
@@ -77,7 +82,7 @@ export function SpotlightTracksSection({
                   <img
                     src={trackImage}
                     alt=""
-                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                     referrerPolicy="no-referrer"
                   />
                   {/* Play Overlay */}

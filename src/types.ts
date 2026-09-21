@@ -119,3 +119,15 @@ export interface WebGLBackgroundProps {
   images: string[];
   currentIndex: number;
 }
+
+export interface DjSetPlaylistDetailSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+  songsList: Song[];
+  playlist: PlaylistItem;
+  isPlaying?: boolean;
+  currentTrackUrl?: string | null;
+  onPlayToggle?: (url: string) => void;
+  userLikes?: string[];
+  onLikeToggle?: (id: string) => void;
+}

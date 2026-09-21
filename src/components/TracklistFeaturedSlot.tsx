@@ -1,19 +1,24 @@
 import React from 'react';
 import { FeaturedSlot } from '../types';
+import { usePlayer } from '../contexts/PlayerContext';
 
 export interface TracklistFeaturedSlotProps {
   slot: FeaturedSlot;
-  isPlaying: boolean;
+  isPlaying?: boolean;
   togglePlay?: (url: string) => void;
-  currentTrackUrl: string | null;
+  currentTrackUrl?: string | null;
 }
 
 export function TracklistFeaturedSlot({
   slot,
-  isPlaying,
-  togglePlay,
-  currentTrackUrl
+  isPlaying: propIsPlaying,
+  togglePlay: propTogglePlay,
+  currentTrackUrl: propCurrentTrackUrl
 }: TracklistFeaturedSlotProps) {
+  const player = usePlayer();
+  const isPlaying = propIsPlaying ?? player.isPlaying;
+  const togglePlay = propTogglePlay ?? player.togglePlay;
+  const currentTrackUrl = propCurrentTrackUrl ?? player.currentTrackUrl;
   const tracks = slot.tracks || [];
   
   return (
@@ -23,7 +28,7 @@ export function TracklistFeaturedSlot({
         <>
           <div className="flex items-center justify-between mb-2 border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
-              <h2 className="font-display font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
+              <h2 className="font-space font-bold text-lg sm:text-xl text-white tracking-widest uppercase">
                 {slot.title}
               </h2>
               {/* Info Circle */}
@@ -47,7 +52,7 @@ export function TracklistFeaturedSlot({
                 </div>
               </div>
             </div>
-            <button className="text-xs text-[#ff2e55] font-display tracking-widest uppercase hover:underline transition-all">
+            <button className="text-xs text-[#ff2e55] font-space tracking-widest uppercase hover:underline transition-all">
               Vedi tutto
             </button>
           </div>
@@ -59,7 +64,7 @@ export function TracklistFeaturedSlot({
         </>
       ) : (
         <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
-          <h3 className="font-display font-bold text-sm text-neutral-400 tracking-wider uppercase">
+          <h3 className="font-space font-bold text-sm text-neutral-400 tracking-wider uppercase">
             {slot.title || "Ancora Spotlight"}
           </h3>
         </div>
@@ -87,7 +92,7 @@ export function TracklistFeaturedSlot({
                   <img
                     src={trackImage}
                     alt=""
-                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 ease-out"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                     referrerPolicy="no-referrer"
                   />
                   <div className={`absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity duration-300 ${isCurrentPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>

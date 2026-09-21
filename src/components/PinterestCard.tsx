@@ -115,21 +115,21 @@ export function PinterestCard({
           <img
             src={cardImg}
             alt=""
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
             referrerPolicy="no-referrer"
           />
         ) : isPlaylistCollage ? (
           <div className="w-full h-full grid grid-cols-2 grid-rows-2 group-hover:scale-105 transition-transform duration-700 ease-out">
-            <img src={`https://picsum.photos/seed/${seed}a/200`} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            <img src={`https://picsum.photos/seed/${seed}b/200`} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            <img src={`https://picsum.photos/seed/${seed}c/200`} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            <img src={`https://picsum.photos/seed/${seed}d/200`} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={`https://picsum.photos/seed/${seed}a/200`} alt="" className="w-full h-full object-cover object-center" referrerPolicy="no-referrer" />
+            <img src={`https://picsum.photos/seed/${seed}b/200`} alt="" className="w-full h-full object-cover object-center" referrerPolicy="no-referrer" />
+            <img src={`https://picsum.photos/seed/${seed}c/200`} alt="" className="w-full h-full object-cover object-center" referrerPolicy="no-referrer" />
+            <img src={`https://picsum.photos/seed/${seed}d/200`} alt="" className="w-full h-full object-cover object-center" referrerPolicy="no-referrer" />
           </div>
         ) : (
           <img
             src={`https://picsum.photos/seed/${seed}/600`}
             alt=""
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
             referrerPolicy="no-referrer"
           />
         )}
@@ -146,7 +146,7 @@ export function PinterestCard({
 
         {/* Floating Tag over image - Top Left */}
         <div className="absolute top-4 left-4 z-10">
-          <span className="text-[8px] md:text-[9px] font-semibold tracking-wider text-white uppercase font-display bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+          <span className="text-[8px] md:text-[9px] font-semibold tracking-wider text-white uppercase font-space bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
             {tag}
           </span>
         </div>
@@ -165,7 +165,7 @@ export function PinterestCard({
           {/* Heading */}
           <h3 className={`${
             isFull ? 'text-base sm:text-lg md:text-xl' : 'text-sm sm:text-base md:text-lg'
-          } font-bold text-white font-display tracking-wider uppercase group-hover:text-[#ff2e55] transition-colors duration-300`}>
+          } font-bold text-white font-space tracking-wider uppercase group-hover:text-[#ff2e55] transition-colors duration-300`}>
             {title}
           </h3>
 
@@ -181,7 +181,7 @@ export function PinterestCard({
         </div>
 
         {/* CTA link */}
-        <div className="mt-5 flex items-center text-[10px] text-[#ff2e55] font-display tracking-widest uppercase gap-1 group-hover:translate-x-1.5 transition-transform duration-300">
+        <div className="mt-5 flex items-center text-[10px] text-[#ff2e55] font-space tracking-widest uppercase gap-1 group-hover:translate-x-1.5 transition-transform duration-300">
           <span className="font-bold">Ascolta ora</span>
           <ChevronRight size={12} className="stroke-[2.5px]" />
         </div>

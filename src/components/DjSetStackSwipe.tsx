@@ -2,28 +2,35 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Play, Pause, Heart, Share2, ChevronLeft, ChevronRight, ListMusic } from 'lucide-react';
 import { Song, PlaylistItem } from '../types';
+import { usePlayer } from '../contexts/PlayerContext';
 
 export interface DjSetStackSwipeProps {
   songsList: Song[];
   playlist: PlaylistItem;
-  isPlaying: boolean;
-  currentTrackUrl: string | null;
-  onPlayToggle: (url: string) => void;
+  isPlaying?: boolean;
+  currentTrackUrl?: string | null;
+  onPlayToggle?: (url: string) => void;
   userLikes?: string[];
-  onLikeToggle: (id: string) => void;
+  onLikeToggle?: (id: string) => void;
   onOpenSheet: () => void;
 }
 
 export function DjSetStackSwipe({ 
   songsList, 
   playlist, 
-  isPlaying, 
-  currentTrackUrl, 
-  onPlayToggle, 
-  userLikes, 
-  onLikeToggle, 
+  isPlaying: propIsPlaying, 
+  currentTrackUrl: propCurrentTrackUrl, 
+  onPlayToggle: propOnPlayToggle, 
+  userLikes: propUserLikes, 
+  onLikeToggle: propOnLikeToggle, 
   onOpenSheet 
 }: DjSetStackSwipeProps) {
+  const player = usePlayer();
+  const isPlaying = propIsPlaying ?? player.isPlaying;
+  const currentTrackUrl = propCurrentTrackUrl ?? player.currentTrackUrl;
+  const onPlayToggle = propOnPlayToggle ?? player.togglePlay;
+  const userLikes = propUserLikes ?? player.userLikes;
+  const onLikeToggle = propOnLikeToggle ?? player.toggleLike;
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleNext = () => {
@@ -167,7 +174,7 @@ export function DjSetStackSwipe({
                     </span>
                   </div>
 
-                  <h3 className={`font-display font-extrabold text-base sm:text-lg mt-1 line-clamp-1 transition-colors duration-200 ${isCurrent ? 'text-[#ff2e55]' : 'text-white'}`}>
+                  <h3 className={`font-space font-extrabold text-base sm:text-lg mt-1 line-clamp-1 transition-colors duration-200 ${isCurrent ? 'text-[#ff2e55]' : 'text-white'}`}>
                     {song.title}
                   </h3>
 
