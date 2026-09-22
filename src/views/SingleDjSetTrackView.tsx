@@ -6,9 +6,11 @@ import { DJSET_ITEMS, getDjSetSongs } from '../data/djsets';
 import { getRandomBackground } from '../data/featured';
 import PlayerTicker from '../components/PlayerTicker';
 import { usePlayer } from '../contexts/PlayerContext';
+import { usePlayerHeightObserver } from '../hooks/usePlayerHeightObserver';
 
 export function SingleDjSetTrackView() {
   const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
+  const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
   const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
@@ -75,11 +77,14 @@ export function SingleDjSetTrackView() {
         <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
       </div>
 
-      <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-5 flex flex-col shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
-        >
+      {/* The Player Box in normal flex flow */}
+      <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto">
+        <div className="flex-1 min-h-[10px]" />
+        <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
+          <PlayerTicker />
+          <div 
+            className="glass-panel animated-gradient-border w-full px-6 py-5 flex flex-col shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
+          >
           <div className="flex items-center gap-4 w-full mb-4">
             {playlist.id === 1 ? (
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-white/10 shrink-0">
@@ -155,6 +160,7 @@ export function SingleDjSetTrackView() {
               <Share2 size={22} strokeWidth={1} />
             </button>
           </div>
+        </div>
         </div>
       </div>
     </motion.main>

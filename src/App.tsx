@@ -21,6 +21,9 @@ import DjSetStackSwipe from './components/DjSetStackSwipe';
 import TracksBottomSheet from './components/TracksBottomSheet';
 import PlayerTicker from './components/PlayerTicker';
 
+import { useViewportHeight } from './hooks/useViewportHeight';
+import { usePlayerHeightObserver } from './hooks/usePlayerHeightObserver';
+
 // ==========================================
 // VIEW IMPORTS (From src/views/)
 // ==========================================
@@ -605,6 +608,7 @@ function MusikTalkView() {
 
 function SingleMusikTalkEpisodeView() {
   const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
+  const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -670,73 +674,76 @@ function SingleMusikTalkEpisodeView() {
         <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
       </div>
 
-      {/* The Player Box */}
-      <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
-        >
-          <h2 className="font-space text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
-            {ep.title}
-          </h2>
+      {/* The Player Box in normal flex flow */}
+      <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto">
+        <div className="flex-1 min-h-[10px]" />
+        <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
+          <PlayerTicker />
+          <div 
+            className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
+          >
+            <h2 className="font-space text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
+              {ep.title}
+            </h2>
 
-          <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-2 mb-4">
-            Music & Talk • {ep.author}
-          </p>
+            <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-2 mb-4">
+              Music & Talk • {ep.author}
+            </p>
 
-          <div className="flex items-center justify-between w-full max-w-[320px]">
-            <button 
-              onClick={() => toggleLike(itemId)}
-              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
-              aria-label="Like"
-            >
-              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
-            </button>
-
-            <div className="flex items-center justify-center gap-4 w-full">
+            <div className="flex items-center justify-between w-full max-w-[320px]">
               <button 
-                onClick={goToPrev}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${epIndex === 0 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={epIndex === 0}
+                onClick={() => toggleLike(itemId)}
+                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
+                aria-label="Like"
               >
-                <SkipBack size={24} strokeWidth={2} />
+                <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
               </button>
 
-              <button 
-                onClick={() => togglePlay(ep.audioUrl)}
-                className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
-                aria-label={trackIsPlaying ? "Pause" : "Play"}
-              >
-                {trackIsPlaying ? (
-                  <Pause size={28} strokeWidth={2} className="fill-black" />
-                ) : (
-                  <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
-                )}
-              </button>
+              <div className="flex items-center justify-center gap-4 w-full">
+                <button 
+                  onClick={goToPrev}
+                  className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${epIndex === 0 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
+                  disabled={epIndex === 0}
+                >
+                  <SkipBack size={24} strokeWidth={2} />
+                </button>
+
+                <button 
+                  onClick={() => togglePlay(ep.audioUrl)}
+                  className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
+                  aria-label={trackIsPlaying ? "Pause" : "Play"}
+                >
+                  {trackIsPlaying ? (
+                    <Pause size={28} strokeWidth={2} className="fill-black" />
+                  ) : (
+                    <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
+                  )}
+                </button>
+
+                <button 
+                  onClick={goToNext}
+                  className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${epIndex === MUSIK_TALK_EPISODES.length - 1 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
+                  disabled={epIndex === MUSIK_TALK_EPISODES.length - 1}
+                >
+                  <SkipForward size={24} strokeWidth={2} />
+                </button>
+              </div>
 
               <button 
-                onClick={goToNext}
-                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${epIndex === MUSIK_TALK_EPISODES.length - 1 ? 'text-white/30 cursor-not-allowed' : 'text-white'}`}
-                disabled={epIndex === MUSIK_TALK_EPISODES.length - 1}
+                className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
+                aria-label="Share"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: ep.title, url: window.location.href })
+                      .catch(e => {
+                        if (e.name !== 'AbortError') console.error("Share failed", e);
+                      });
+                  }
+                }}
               >
-                <SkipForward size={24} strokeWidth={2} />
+                <Share2 size={22} strokeWidth={1} />
               </button>
             </div>
-
-            <button 
-              className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
-              aria-label="Share"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: ep.title, url: window.location.href })
-                    .catch(e => {
-                      if (e.name !== 'AbortError') console.error("Share failed", e);
-                    });
-                }
-              }}
-            >
-              <Share2 size={22} strokeWidth={1} />
-            </button>
           </div>
         </div>
       </div>
@@ -746,15 +753,17 @@ function SingleMusikTalkEpisodeView() {
 
 function HomeView() {
   const { isPlaying, userLikes, togglePlay, toggleLike, currentTrackUrl } = usePlayer();
+  const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const navigate = useNavigate();
   const itemId = 'radio-amble-live';
   const isLiked = userLikes?.includes(itemId) || false;
   const isStreamPlaying = isPlaying && (currentTrackUrl === "https://mqugxowc-lbmedia.radioca.st/stream" || currentTrackUrl === null);
   return (
     <motion.main
-      className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-between pt-24 pb-[96px] md:pb-[32px] px-6 overflow-hidden"
+      className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end pt-16 sm:pt-20 pb-2 md:pb-6 px-6 overflow-hidden mx-auto"
     >
-      <div className="flex-1 flex flex-col justify-end">
+      <div className="flex-1 min-h-[10px]" />
+      <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
         <PlayerTicker />
         <div 
           className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
@@ -824,6 +833,7 @@ function HomeView() {
 }
 
   function AppContent() {
+  useViewportHeight();
   const { user, signIn, logOut } = useAuth();
   const [currentHomeBgIndex, setCurrentHomeBgIndex] = useState(0);
   const location = useLocation();
@@ -974,7 +984,10 @@ function HomeView() {
   };
 
   return (
-    <div className={`h-screen h-[100dvh] w-full relative overflow-hidden flex flex-col items-center bg-[#0a0a0a]`}>
+    <div 
+      className="w-full relative overflow-hidden flex flex-col items-center bg-[#0a0a0a]"
+      style={{ height: 'var(--app-height, 100dvh)' }}
+    >
       
       {/* Background */}
       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
@@ -1141,61 +1154,63 @@ function HomeView() {
         </div>
       </div>
       
-      {/* Pages */}
-      <AnimatePresence custom={direction}>
-        <motion.div
-          key={location.pathname.includes('/song/') ? location.pathname.substring(0, location.pathname.lastIndexOf('/song/')) + '/song' : location.pathname}
-          custom={direction}
-          variants={{
-            initial: (dir) => ({
-              x: dir > 0 ? "100%" : "-30%",
-              zIndex: dir > 0 ? 10 : 0
-            }),
-            animate: {
-              x: 0,
-              zIndex: 10
-            },
-            exit: (dir) => ({
-              x: dir > 0 ? "-30%" : "100%",
-              zIndex: dir > 0 ? 0 : 10
-            })
-          }}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 w-full h-full flex flex-col items-center shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
-          drag={window.innerWidth < 768 ? "x" : false}
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.2}
-          onDragEnd={handleDragEnd}
-        >
-          <Routes location={location}>
-            <Route path="/" element={<HomeView />} />
-            <Route path="/playlist" element={<PlaylistView />} />
-            <Route path="/playlist/:id" element={<SinglePlaylistView />} />
-            <Route path="/playlist/:id/song/:songIndex" element={<SingleSongView />} />
-            <Route path="/podcast" element={<PodcastView />} />
-            <Route path="/podcast/:id" element={<SinglePodcastView />} />
-            <Route path="/podcast/:id/song/:songIndex" element={<SinglePodcastEpisodeView />} />
-            <Route path="/djset" element={<DjSetView />} />
-            <Route path="/djset/:id" element={<SingleDjSetView />} />
-            <Route path="/djset/:id/song/:songIndex" element={<SingleDjSetTrackView />} />
-            <Route path="/programmi" element={<ProgrammiView />} />
-            <Route path="/programmi/musik-talk" element={<MusikTalkView />} />
-            <Route path="/programmi/musik-talk/:id" element={<SingleMusikTalkEpisodeView />} />
-            <Route path="/explore" element={<ExploreView />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
+      {/* Main Pages Container */}
+      <main className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col items-center z-10">
+        <AnimatePresence custom={direction}>
+          <motion.div
+            key={location.pathname.includes('/song/') ? location.pathname.substring(0, location.pathname.lastIndexOf('/song/')) + '/song' : location.pathname}
+            custom={direction}
+            variants={{
+              initial: (dir) => ({
+                x: dir > 0 ? "100%" : "-30%",
+                zIndex: dir > 0 ? 10 : 0
+              }),
+              animate: {
+                x: 0,
+                zIndex: 10
+              },
+              exit: (dir) => ({
+                x: dir > 0 ? "-30%" : "100%",
+                zIndex: dir > 0 ? 0 : 10
+              })
+            }}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 w-full h-full flex flex-col items-center shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+            drag={window.innerWidth < 768 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+          >
+            <Routes location={location}>
+              <Route path="/" element={<HomeView />} />
+              <Route path="/playlist" element={<PlaylistView />} />
+              <Route path="/playlist/:id" element={<SinglePlaylistView />} />
+              <Route path="/playlist/:id/song/:songIndex" element={<SingleSongView />} />
+              <Route path="/podcast" element={<PodcastView />} />
+              <Route path="/podcast/:id" element={<SinglePodcastView />} />
+              <Route path="/podcast/:id/song/:songIndex" element={<SinglePodcastEpisodeView />} />
+              <Route path="/djset" element={<DjSetView />} />
+              <Route path="/djset/:id" element={<SingleDjSetView />} />
+              <Route path="/djset/:id/song/:songIndex" element={<SingleDjSetTrackView />} />
+              <Route path="/programmi" element={<ProgrammiView />} />
+              <Route path="/programmi/musik-talk" element={<MusikTalkView />} />
+              <Route path="/programmi/musik-talk/:id" element={<SingleMusikTalkEpisodeView />} />
+              <Route path="/explore" element={<ExploreView />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
       {/* Floating Header */}
       <header 
         className={`z-40 w-full transition-all duration-500 ease-out ${
           isHome 
-            ? 'absolute top-8 left-0 right-0 bg-transparent' 
+            ? 'absolute top-8 left-0 right-0 bg-transparent pointer-events-auto' 
             : `fixed top-0 left-0 right-0 ${
                 isScrolled 
                   ? 'bg-black/40 backdrop-blur-md border-b border-white/5 shadow-lg' 
@@ -1235,60 +1250,64 @@ function HomeView() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <div className={`md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[440px] h-[64px] flex items-center justify-around px-2 transition-all duration-300 ${
-        !isHome 
-          ? "bg-[#0c0c0e]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]" 
-          : ""
-      }`}>
-        <button 
-          onClick={() => navigate('/')}
-          className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname === '/' ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
-        >
-          <Radio size={18} className={location.pathname === '/' ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
-          <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname === '/' ? 'text-white' : 'text-white/40'}`}>LIVE</span>
-        </button>
+      {/* Mobile Bottom Navigation Bar in normal flex flow */}
+      <nav 
+        className="mobile-bottom-nav-container md:hidden flex-shrink-0 z-50 w-full flex justify-center items-center pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-1 px-4 pointer-events-auto transition-all duration-300"
+      >
+        <div className={`w-full max-w-[440px] h-[60px] sm:h-[64px] flex items-center justify-around px-2 transition-all duration-300 ${
+          !isHome 
+            ? "bg-[#0c0c0e]/85 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]" 
+            : "bg-transparent border-transparent"
+        }`}>
+          <button 
+            onClick={() => navigate('/')}
+            className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname === '/' ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
+          >
+            <Radio size={18} className={location.pathname === '/' ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
+            <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname === '/' ? 'text-white' : 'text-white/40'}`}>LIVE</span>
+          </button>
 
-        <button 
-          onClick={() => navigate('/playlist')}
-          className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/playlist') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
-        >
-          <ListMusic size={18} className={location.pathname.startsWith('/playlist') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
-          <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/playlist') ? 'text-white' : 'text-white/40'}`}>PLAYLIST</span>
-        </button>
+          <button 
+            onClick={() => navigate('/playlist')}
+            className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/playlist') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
+          >
+            <ListMusic size={18} className={location.pathname.startsWith('/playlist') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
+            <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/playlist') ? 'text-white' : 'text-white/40'}`}>PLAYLIST</span>
+          </button>
 
-        <button 
-          onClick={() => navigate('/podcast')}
-          className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/podcast') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
-        >
-          <Mic size={18} className={location.pathname.startsWith('/podcast') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
-          <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/podcast') ? 'text-white' : 'text-white/40'}`}>PODCAST</span>
-        </button>
+          <button 
+            onClick={() => navigate('/podcast')}
+            className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/podcast') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
+          >
+            <Mic size={18} className={location.pathname.startsWith('/podcast') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
+            <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/podcast') ? 'text-white' : 'text-white/40'}`}>PODCAST</span>
+          </button>
 
-        <button 
-          onClick={() => navigate('/djset')}
-          className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/djset') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
-        >
-          <Disc3 size={18} className={location.pathname.startsWith('/djset') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
-          <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/djset') ? 'text-white' : 'text-white/40'}`}>DJ SET</span>
-        </button>
+          <button 
+            onClick={() => navigate('/djset')}
+            className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/djset') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
+          >
+            <Disc3 size={18} className={location.pathname.startsWith('/djset') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
+            <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/djset') ? 'text-white' : 'text-white/40'}`}>DJ SET</span>
+          </button>
 
-        <button 
-          onClick={() => navigate('/programmi')}
-          className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/programmi') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
-        >
-          <Home size={18} className={location.pathname.startsWith('/programmi') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
-          <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/programmi') ? 'text-white' : 'text-white/40'}`}>TALK</span>
-        </button>
+          <button 
+            onClick={() => navigate('/programmi')}
+            className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/programmi') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
+          >
+            <Home size={18} className={location.pathname.startsWith('/programmi') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
+            <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/programmi') ? 'text-white' : 'text-white/40'}`}>TALK</span>
+          </button>
 
-        <button 
-          onClick={() => navigate('/profile')}
-          className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/profile') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
-        >
-          <UserIcon size={18} className={location.pathname.startsWith('/profile') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
-          <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/profile') ? 'text-white' : 'text-white/40'}`}>PROFILO</span>
-        </button>
-      </div>
+          <button 
+            onClick={() => navigate('/profile')}
+            className={`flex flex-col items-center justify-center w-12 h-12 transition-all cursor-pointer ${location.pathname.startsWith('/profile') ? 'text-white scale-110' : 'text-white/40 hover:text-white/70'}`}
+          >
+            <UserIcon size={18} className={location.pathname.startsWith('/profile') ? 'stroke-[2px] text-white' : 'stroke-[1.5px]'} />
+            <span className={`text-[8px] font-sans tracking-wider mt-1 font-bold ${location.pathname.startsWith('/profile') ? 'text-white' : 'text-white/40'}`}>PROFILO</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

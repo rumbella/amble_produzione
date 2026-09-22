@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+:root {
+  /* Dynamic viewport height with JS fallback via useViewportHeight hook */
+  --app-height: 100dvh;
+  /* Dynamic player height measured via ResizeObserver */
+  --player-height: 0px;
+  /* Bottom navbar height */
+  --navbar-height: 64px;
+  /* Safe area inset values */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+}
+
 @theme {
   --color-primary: #ffffff;
   --color-surface: #111111;
@@ -13,16 +25,47 @@
 }
 
 @layer base {
+  /*
+    Cross-Device Viewport Geometry Handling:
+    1. iPhone with notch / gesture bar:
+       - viewport-fit=cover enables env(safe-area-inset-*)
+       - padding-bottom uses max(..., env(safe-area-inset-bottom))
+    2. Android with software navigation bar:
+       - visualViewport detects keyboard and software buttons reducing visible area
+       - --app-height adapts in real time to the exact visible pixels
+    3. Browser address bar visible vs hidden after scroll:
+       - 100dvh + visualViewport resize event updates --app-height smoothly
+    4. Tablet in landscape:
+       - Desktop sidebar (md:flex) takes over navigation, bottom nav is hidden (md:hidden)
+       - Content area preserves scroll bounds with flex: 1 1 auto; min-height: 0;
+    5. PWA Standalone (@media display-mode: standalone):
+       - Viewport runs full screen without browser bars, respecting safe-area insets
+  */
   html, body, #root {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
-    height: 100dvh;
+    height: var(--app-height, 100dvh);
+    min-height: var(--app-height, 100dvh);
+    max-height: var(--app-height, 100dvh);
     overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-surface text-on-surface font-sans antialiased;
+  }
+}
+
+/* Explicit PWA Standalone Mode adjustments */
+@media (display-mode: standalone) {
+  :root {
+    --safe-area-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-bottom-nav-container {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

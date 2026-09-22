@@ -6,9 +6,11 @@ import { MUSIC_PLAYLISTS, getPlaylistSongs } from '../data/podcasts';
 import { getRandomBackground } from '../data/featured';
 import PlayerTicker from '../components/PlayerTicker';
 import { usePlayer } from '../contexts/PlayerContext';
+import { usePlayerHeightObserver } from '../hooks/usePlayerHeightObserver';
 
 export function SingleSongView() {
   const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
+  const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
@@ -76,12 +78,14 @@ export function SingleSongView() {
         <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
       </div>
 
-      {/* The Player Box */}
-      <div className="absolute inset-0 flex flex-col justify-end items-center z-10 w-full max-w-[500px] mb-[100px] md:mb-[40px] px-6 mx-auto pointer-events-auto">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
-        >
+      {/* The Player Box in normal flex flow */}
+      <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto">
+        <div className="flex-1 min-h-[10px]" />
+        <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
+          <PlayerTicker />
+          <div 
+            className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
+          >
           <h2 className="font-space text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
             {song.title}
           </h2>
@@ -144,6 +148,7 @@ export function SingleSongView() {
               <Share2 size={22} strokeWidth={1} />
             </button>
           </div>
+        </div>
         </div>
       </div>
     </motion.main>
