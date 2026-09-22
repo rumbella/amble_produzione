@@ -3,6 +3,25 @@
  */
 
 // ==========================================
+// SPONSORSHIP & BACKGROUND SYSTEM TYPES
+// ==========================================
+
+export type HomeBackground = {
+  type: 'video' | 'image';
+  src: string;
+  sponsorName?: string;
+};
+
+export type PageSponsor = {
+  sponsorName: string;
+  backgroundType: 'video' | 'slideshow';
+  backgroundSrc: string | string[];
+  marqueeText: string;
+  popupTrigger: 'auto' | 'tap';
+  popupVideoSrc: string;
+};
+
+// ==========================================
 // MEDIA & TRACK TYPES
 // ==========================================
 
@@ -16,6 +35,7 @@ export interface Song {
   author?: string;
   tag?: string;
   backgroundUrl?: string;
+  sponsor?: PageSponsor;
 }
 
 export interface SpotlightTrack {
@@ -41,6 +61,7 @@ export interface MediaCategoryItem {
   time?: string;
   type?: string;
   targetId?: number | null;
+  sponsor?: PageSponsor;
 }
 
 // Category-specific aliases for explicit semantic domain representation
@@ -59,6 +80,7 @@ export interface MusikTalkEpisode {
   duration: string;
   author: string;
   tag: string;
+  sponsor?: PageSponsor;
 }
 
 // ==========================================

@@ -10,7 +10,7 @@ export function ExploreView() {
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full flex flex-col pt-32 md:pt-40 overflow-y-auto bg-[#0a0a0a]"
+      className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 pb-44 md:pb-32 md:pl-[104px]">
         

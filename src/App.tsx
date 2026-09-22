@@ -23,6 +23,10 @@ import PlayerTicker from './components/PlayerTicker';
 
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { usePlayerHeightObserver } from './hooks/usePlayerHeightObserver';
+import { PageBackground } from './components/PageBackground';
+import { SponsorMarquee } from './components/SponsorMarquee';
+import { SponsorSpotModal, useSponsorSpot } from './components/SponsorSpotModal';
+import { activeHomeBackground } from './data/sponsors';
 
 // ==========================================
 // VIEW IMPORTS (From src/views/)
@@ -127,7 +131,7 @@ function PlaylistView() {
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full flex flex-col pt-32 md:pt-40 overflow-y-auto bg-[#0a0a0a]"
+      className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
@@ -224,7 +228,7 @@ function PodcastView() {
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full flex flex-col pt-32 md:pt-40 overflow-y-auto bg-[#0a0a0a]"
+      className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
@@ -351,7 +355,7 @@ function DjSetView() {
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full flex flex-col pt-32 md:pt-40 overflow-y-auto bg-[#0a0a0a]"
+      className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 pb-44 md:pb-32 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
@@ -388,7 +392,7 @@ function ProgrammiView() {
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full flex flex-col pt-32 md:pt-40 overflow-y-auto bg-[#0a0a0a]"
+      className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
         <div className="mb-4 flex flex-col text-left">
@@ -498,22 +502,13 @@ function MusikTalkView() {
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full bg-[#0a0a0a] overflow-hidden"
+      className="absolute inset-0 z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
       {/* Immersive Background */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        <img 
-          className="absolute inset-0 w-full h-full object-cover"
-          src={bgUrl}
-          alt=""
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-red-950/30 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-black/75 pointer-events-none"></div>
-      </div>
+      <PageBackground type="image" src={bgUrl} />
 
       {/* Content Area */}
-      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 pt-28 md:pt-36 md:pl-[104px]">
+      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 page-top-spacing md:pl-[104px]">
         <div className="w-full max-w-[1200px] mx-auto pb-44">
           
           {/* Hero Section */}
@@ -615,13 +610,15 @@ function SingleMusikTalkEpisodeView() {
   const epIndex = MUSIK_TALK_EPISODES.findIndex(ep => ep.id === Number(id));
   const ep = MUSIK_TALK_EPISODES[epIndex];
 
+  const sponsor = ep?.sponsor;
+  const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
+
   if (!ep) return null;
 
   const bgUrl = ep.imageUrl;
   const itemId = `musiktalk_ep:${ep.id}`;
   const isLiked = userLikes?.includes(itemId) || false;
   const trackIsPlaying = isPlaying && currentTrackUrl === ep.audioUrl;
-  const isVideo = bgUrl?.toLowerCase().endsWith('.mp4');
 
   const goToPrev = () => {
     if (epIndex > 0) {
@@ -648,34 +645,37 @@ function SingleMusikTalkEpisodeView() {
 
   return (
     <motion.main
-      className="relative z-30 w-full h-full"
+      className="relative z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
-      {/* Background (Episode cover image) */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover object-center"
-            src={bgUrl}
+      {/* Level 3: Scoped Full-Page Background */}
+      <PageBackground 
+        type={sponsor ? sponsor.backgroundType : bgUrl ? 'image' : 'neutral'}
+        src={sponsor ? sponsor.backgroundSrc : bgUrl}
+      />
+
+      {/* Sponsor Marquee Bar if entity has sponsor */}
+      {sponsor && (
+        <div className="fixed top-[calc(env(safe-area-inset-top,0px)+2.75rem)] md:top-[calc(env(safe-area-inset-top,0px)+3rem)] left-0 right-0 z-40 md:pl-[80px]">
+          <SponsorMarquee 
+            sponsor={sponsor} 
+            onOpenSpot={openSpot} 
           />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover object-center"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        {/* Color tone blend overlays matching single song/podcast style */}
-        <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
-      </div>
+        </div>
+      )}
+
+      {/* Sponsor Video Spot Modal */}
+      {sponsor && (
+        <SponsorSpotModal 
+          sponsor={sponsor}
+          isOpen={isSpotOpen}
+          onClose={closeSpot}
+        />
+      )}
 
       {/* The Player Box in normal flex flow */}
-      <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto">
+      <div className={`relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto ${
+        sponsor ? 'pt-16 sm:pt-20' : ''
+      }`}>
         <div className="flex-1 min-h-[10px]" />
         <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
           <PlayerTicker />
@@ -751,80 +751,99 @@ function SingleMusikTalkEpisodeView() {
   );
 }
 
-function HomeView() {
+interface HomeViewProps {
+  videoSrc?: string;
+}
+
+function HomeView({ videoSrc }: HomeViewProps = {}) {
   const { isPlaying, userLikes, togglePlay, toggleLike, currentTrackUrl } = usePlayer();
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
-  const navigate = useNavigate();
   const itemId = 'radio-amble-live';
   const isLiked = userLikes?.includes(itemId) || false;
   const isStreamPlaying = isPlaying && (currentTrackUrl === "https://mqugxowc-lbmedia.radioca.st/stream" || currentTrackUrl === null);
+
+  // Level 1: Data-driven single configurable background for homepage
+  const currentBgType = videoSrc ? 'video' : activeHomeBackground.type;
+  const currentBgSrc = videoSrc || activeHomeBackground.src;
+
   return (
     <motion.main
-      className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end pt-16 sm:pt-20 pb-2 md:pb-6 px-6 overflow-hidden mx-auto"
+      className="relative z-10 w-full h-full flex flex-col items-center overflow-hidden bg-transparent"
     >
-      <div className="flex-1 min-h-[10px]" />
-      <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
-        <PlayerTicker />
-        <div 
-          className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
-        >
-          {/* Custom partnership text */}
-          <span className="text-[9px] tracking-wider text-white/40 font-sans mt-1 mb-2">sponsored by</span>
+      {/* Level 1: Scoped edge-to-edge full page background */}
+      <PageBackground 
+        type={currentBgType}
+        src={currentBgSrc}
+      />
 
-          <a
-            href="https://disclaimerofficial.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-[-15px] mb-[-12px] sm:mt-[-30px] sm:mb-[-25px] flex flex-col items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105"
-            title="Visita disclaimerofficial.com"
+      {/* The Player Box in normal flex flow */}
+      <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end pt-16 sm:pt-20 pb-2 md:pb-6 px-6 overflow-hidden mx-auto pointer-events-auto">
+        <div className="flex-1 min-h-[10px]" />
+        <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
+          <PlayerTicker />
+          <div 
+            className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
           >
-            <img 
-              src="https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/Screenshot_2026-06-15_11.39.16-removebg-preview.png" 
-              alt="Disclaimer Logo" 
-              className="h-[75px] sm:h-[110px] md:h-[130px] w-auto object-contain select-none pointer-events-none"
-              referrerPolicy="no-referrer"
-            />
-          </a>
-          
-          <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-1 mb-4">
-            radio amblè live
-          </p>
+            {/* Custom partnership text */}
+            <span className="text-[9px] tracking-wider text-white/40 font-sans mt-1 mb-2">
+              {activeHomeBackground.sponsorName ? `sponsored by ${activeHomeBackground.sponsorName}` : 'sponsored by'}
+            </span>
 
-          <div className="flex items-center justify-between w-full max-w-[260px]">
-            <button 
-              onClick={() => toggleLike(itemId)}
-              className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
-              aria-label="Like"
+            <a
+              href="https://disclaimerofficial.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-[-15px] mb-[-12px] sm:mt-[-30px] sm:mb-[-25px] flex flex-col items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105"
+              title="Visita disclaimerofficial.com"
             >
-              <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
-            </button>
+              <img 
+                src="https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/Screenshot_2026-06-15_11.39.16-removebg-preview.png" 
+                alt="Disclaimer Logo" 
+                className="h-[75px] sm:h-[110px] md:h-[130px] w-auto object-contain select-none pointer-events-none"
+                referrerPolicy="no-referrer"
+              />
+            </a>
+            
+            <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-1 mb-4">
+              radio amblè live
+            </p>
 
-            <button 
-              onClick={() => togglePlay()}
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform ${isStreamPlaying ? 'play-pulse' : ''}`}
-              aria-label={isStreamPlaying ? "Pause" : "Play"}
-            >
-              {isStreamPlaying ? ( 
-                <Pause className="w-6 h-6 sm:w-7 sm:h-7 fill-black" strokeWidth={2} /> 
-              ) : ( 
-                <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-black" strokeWidth={2} /> 
-              )}
-            </button>
+            <div className="flex items-center justify-between w-full max-w-[260px]">
+              <button 
+                onClick={() => toggleLike(itemId)}
+                className={`p-2 transition-transform hover:scale-110 flex items-center justify-center ${isLiked ? 'text-white' : 'text-white/80'}`}
+                aria-label="Like"
+              >
+                <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
+              </button>
 
-            <button 
-              className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
-              aria-label="Share"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: 'Radio Amblè Live', url: window.location.href })
-                    .catch(e => {
-                      if (e.name !== 'AbortError') console.error("Share failed", e);
-                    });
-                }
-              }}
-            >
-              <Share2 size={22} strokeWidth={1} />
-            </button>
+              <button 
+                onClick={() => togglePlay()}
+                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform ${isStreamPlaying ? 'play-pulse' : ''}`}
+                aria-label={isStreamPlaying ? "Pause" : "Play"}
+              >
+                {isStreamPlaying ? ( 
+                  <Pause className="w-6 h-6 sm:w-7 sm:h-7 fill-black" strokeWidth={2} /> 
+                ) : ( 
+                  <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-black" strokeWidth={2} /> 
+                )}
+              </button>
+
+              <button 
+                className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
+                aria-label="Share"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: 'Radio Amblè Live', url: window.location.href })
+                      .catch(e => {
+                        if (e.name !== 'AbortError') console.error("Share failed", e);
+                      });
+                  }
+                }}
+              >
+                <Share2 size={22} strokeWidth={1} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -835,7 +854,6 @@ function HomeView() {
   function AppContent() {
   useViewportHeight();
   const { user, signIn, logOut } = useAuth();
-  const [currentHomeBgIndex, setCurrentHomeBgIndex] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -914,15 +932,6 @@ function HomeView() {
   const direction = directionRef.current;
   const isHome = location.pathname === '/';
 
-  // Set up background slide timer when isHome is active
-  useEffect(() => {
-    if (!isHome) return;
-    const interval = setInterval(() => {
-      setCurrentHomeBgIndex((prev) => (prev + 1) % HOMEPAGE_BACKGROUNDS.length);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [isHome]);
-
   const handleBack = () => {
     const path = location.pathname;
     
@@ -988,37 +997,6 @@ function HomeView() {
       className="w-full relative overflow-hidden flex flex-col items-center bg-[#0a0a0a]"
       style={{ height: 'var(--app-height, 100dvh)' }}
     >
-      
-      {/* Background */}
-      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-        {isHome ? (
-          <div className="absolute inset-0 w-full h-full">
-            <WebGLBackground 
-              images={HOMEPAGE_BACKGROUNDS}
-              currentIndex={currentHomeBgIndex}
-            />
-            {/* Color tone blend overlays matching Scheggia style */}
-            <div className="absolute inset-0 bg-red-950/20 mix-blend-multiply pointer-events-none"></div>
-            <div className="absolute inset-0 bg-black/55 pointer-events-none font-space"></div>
-          </div>
-        ) : (
-          <>
-            {!location.pathname.startsWith('/programmi/musik-talk') && (
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="absolute inset-0 w-full h-full object-cover"
-                src="https://radioamble-cdn.b-cdn.net/video/From%20KlickPin%20CF%20%D0%9F%D0%B8%D0%BD%20%D0%BD%D0%B0%20%D0%B4%D0%BE%D1%81%D0%BA%D0%B5%20%D0%91%D1%8B%D1%81%D1%82%D1%80%D0%BE%D0%B5%20%D1%81%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5.mp4" 
-              />
-            )}
-            <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
-            <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
-          </>
-        )}
-      </div>
-
       {/* Desktop Left Sidebar Navigation */}
       <div className="hidden md:flex flex-col items-center justify-between py-8 fixed left-[6px] top-[6px] bottom-[6px] w-[74px] bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-50">
         {/* Brand Logo / Top Mark */}
@@ -1211,9 +1189,9 @@ function HomeView() {
         className={`z-40 w-full transition-all duration-500 ease-out ${
           isHome 
             ? 'absolute top-8 left-0 right-0 bg-transparent pointer-events-auto' 
-            : `fixed top-0 left-0 right-0 ${
+            : `fixed top-0 left-0 right-0 pt-[calc(env(safe-area-inset-top,0px)+10px)] pb-1.5 sm:pb-2 ${
                 isScrolled 
-                  ? 'bg-black/40 backdrop-blur-md border-b border-white/5 shadow-lg' 
+                  ? 'bg-black/60 backdrop-blur-md border-b border-white/5 shadow-lg' 
                   : 'bg-transparent border-b border-transparent shadow-none'
               }`
         }`}
@@ -1222,14 +1200,15 @@ function HomeView() {
         }}
       >
         <div className={`w-full max-w-[1600px] mx-auto px-6 sm:px-10 md:pl-[124px] flex justify-between items-center transition-all duration-300 ${
-          isHome ? 'h-12' : 'h-16 md:h-20'
+          isHome ? 'h-12' : 'h-10 md:h-11'
         }`}>
           {/* Left Column: Back button */}
           <div className="flex items-center gap-4 w-10 md:min-w-[200px] h-full">
             {!isHome && (
               <button 
                 onClick={handleBack}
-                className="text-white/80 hover:text-white hover:scale-110 transition-all cursor-pointer p-1 -ml-1"
+                className="text-white/80 hover:text-white hover:scale-110 transition-all cursor-pointer p-1.5 -ml-1.5 rounded-full flex items-center justify-center focus:outline-none"
+                aria-label="Torna indietro"
               >
                 <ChevronLeft size={24} />
               </button>

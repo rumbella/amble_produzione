@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { Play, Pause, ChevronRight, ListMusic } from 'lucide-react';
 import { DJSET_ITEMS, getDjSetSongs } from '../data/djsets';
-import { getRandomBackground } from '../data/featured';
+import { PageBackground } from '../components/PageBackground';
+import { SponsorMarquee } from '../components/SponsorMarquee';
+import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal';
 import SongRowItem from '../components/SongRowItem';
 import DjSetStackSwipe from '../components/DjSetStackSwipe';
 import TracksBottomSheet from '../components/TracksBottomSheet';
@@ -14,43 +16,48 @@ export function SingleDjSetView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const sponsor = playlist?.sponsor;
+  const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
 
   if (!playlist) return null;
 
   const songsList = getDjSetSongs(playlist.id);
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
 
   return (
     <motion.main
-      className="absolute inset-0 z-30 w-full h-full bg-[#0a0a0a] overflow-hidden"
+      className="absolute inset-0 z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
-      {/* Immersive Background */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
+      {/* Level 3: Scoped Full-Page Background (Sponsor Video / Slideshow, or Neutral solid #0a0a0a) */}
+      <PageBackground 
+        type={sponsor ? sponsor.backgroundType : 'neutral'}
+        src={sponsor ? sponsor.backgroundSrc : undefined}
+      />
+
+      {/* Sponsor Marquee Bar if entity has sponsor */}
+      {sponsor && (
+        <div className="fixed top-[calc(env(safe-area-inset-top,0px)+2.75rem)] md:top-[calc(env(safe-area-inset-top,0px)+3rem)] left-0 right-0 z-40 md:pl-[80px]">
+          <SponsorMarquee 
+            sponsor={sponsor} 
+            onOpenSpot={openSpot} 
           />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-950/30 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-black/75 pointer-events-none"></div>
-      </div>
+        </div>
+      )}
+
+      {/* Sponsor Video Spot Modal */}
+      {sponsor && (
+        <SponsorSpotModal 
+          sponsor={sponsor}
+          isOpen={isSpotOpen}
+          onClose={closeSpot}
+        />
+      )}
 
       {/* Content Area */}
-      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 pt-28 md:pt-36 md:pl-[104px]">
+      <div className={`absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 ${
+        sponsor ? 'page-top-spacing-sponsored' : 'page-top-spacing'
+      } md:pl-[104px]`}>
         <div className="w-full max-w-[1200px] mx-auto pb-44">
           
           {/* Hero Section */}

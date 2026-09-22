@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { Play, Pause, SkipBack, SkipForward, Heart, Share2 } from 'lucide-react';
 import { MUSIC_PLAYLISTS, getPlaylistSongs } from '../data/podcasts';
-import { getRandomBackground } from '../data/featured';
 import PlayerTicker from '../components/PlayerTicker';
 import { usePlayer } from '../contexts/PlayerContext';
 import { usePlayerHeightObserver } from '../hooks/usePlayerHeightObserver';
+import { PageBackground } from '../components/PageBackground';
+import { SponsorMarquee } from '../components/SponsorMarquee';
+import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal';
 
 export function SingleSongView() {
   const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
@@ -14,11 +16,13 @@ export function SingleSongView() {
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
-  const [bgUrl] = useState(() => playlist?.imageUrl || getRandomBackground());
   
   const sIndex = Number(songIndex);
   const songs = playlist ? getPlaylistSongs(playlist.id) : [];
   const song = songs[sIndex];
+
+  const sponsor = song?.sponsor || playlist?.sponsor;
+  const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
 
   if (!playlist || !song) return null;
 
@@ -26,7 +30,6 @@ export function SingleSongView() {
   const itemId = `playlist_song:${playlist.id}:${songIndex}`;
   const isLiked = userLikes?.includes(itemId) || false;
   const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
-  const isVideo = bgUrl.toLowerCase().endsWith('.mp4');
 
   const goToPrev = () => {
     if (sIndex > 0) {
@@ -53,33 +56,37 @@ export function SingleSongView() {
 
   return (
     <motion.main
-      className="relative z-30 w-full h-full"
+      className="relative z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
-      {/* Background (Specific to the single song) */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        {isVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
+      {/* Level 3: Scoped Full-Page Background */}
+      <PageBackground 
+        type={sponsor ? sponsor.backgroundType : song?.imageUrl || playlist?.imageUrl ? 'image' : 'neutral'}
+        src={sponsor ? sponsor.backgroundSrc : song?.imageUrl || playlist?.imageUrl}
+      />
+
+      {/* Sponsor Marquee Bar if entity has sponsor */}
+      {sponsor && (
+        <div className="fixed top-[calc(env(safe-area-inset-top,0px)+2.75rem)] md:top-[calc(env(safe-area-inset-top,0px)+3rem)] left-0 right-0 z-40 md:pl-[80px]">
+          <SponsorMarquee 
+            sponsor={sponsor} 
+            onOpenSpot={openSpot} 
           />
-        ) : (
-          <img 
-            className="absolute inset-0 w-full h-full object-cover"
-            src={bgUrl}
-            alt=""
-            referrerPolicy="no-referrer"
-          />
-        )}
-        <div className="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
-        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
-      </div>
+        </div>
+      )}
+
+      {/* Sponsor Video Spot Modal */}
+      {sponsor && (
+        <SponsorSpotModal 
+          sponsor={sponsor}
+          isOpen={isSpotOpen}
+          onClose={closeSpot}
+        />
+      )}
 
       {/* The Player Box in normal flex flow */}
-      <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto">
+      <div className={`relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end items-center pb-2 md:pb-6 px-6 mx-auto pointer-events-auto ${
+        sponsor ? 'pt-16 sm:pt-20' : ''
+      }`}>
         <div className="flex-1 min-h-[10px]" />
         <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
           <PlayerTicker />

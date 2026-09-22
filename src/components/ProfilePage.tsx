@@ -214,7 +214,7 @@ export function ProfilePage({ userLikes: propUserLikes, toggleLike: propToggleLi
   };
 
   return (
-    <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-4 sm:p-10 pt-32 md:pt-40 md:pl-[104px]">
+    <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full min-h-full bg-[#0a0a0a] flex flex-col p-4 sm:p-10 page-top-spacing md:pl-[104px]">
       <div className="w-full max-w-[640px] mx-auto pb-24 md:pb-10 flex flex-col gap-6">
         
         {/* LOGGED IN VIEW */}

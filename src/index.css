@@ -10,6 +10,8 @@
   /* Safe area inset values */
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-top: env(safe-area-inset-top, 0px);
+  /* Compact header and page content spacing */
+  --header-safe-pt: calc(env(safe-area-inset-top, 0px) + 10px);
 }
 
 @theme {
@@ -96,6 +98,25 @@
   .play-pulse {
     animation: play-pulse-anim 2s infinite ease-in-out !important;
   }
+
+  /* Compact top spacing for container & detail pages under back button */
+  .page-top-spacing {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 4rem);
+  }
+  @media (min-width: 768px) {
+    .page-top-spacing {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
+    }
+  }
+
+  .page-top-spacing-sponsored {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 5.75rem);
+  }
+  @media (min-width: 768px) {
+    .page-top-spacing-sponsored {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 6.25rem);
+    }
+  }
 }
 
 @keyframes play-pulse-anim {
@@ -141,5 +162,20 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 

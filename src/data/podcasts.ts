@@ -19,6 +19,7 @@
 
 import { Song, PodcastItem, PlaylistCategoryItem } from '../types';
 import { MOCK_SONGS } from './djsets';
+import { SAMPLE_SLIDESHOW_SPONSOR } from './sponsors';
 
 export const PODCAST_ITEMS: PodcastItem[] = [
   {
@@ -29,7 +30,8 @@ export const PODCAST_ITEMS: PodcastItem[] = [
     seed: 205,
     tag: 'PODCAST ESCLUSIVO',
     subtitle: 'Di Stiv Tirella',
-    teaser: 'L\'energia irriverente e imprevedibile di Scheggia Impazzita, formato podcast firmato Stiv Tirella con ospiti d\'eccezione.'
+    teaser: 'L\'energia irriverente e imprevedibile di Scheggia Impazzita, formato podcast firmato Stiv Tirella con ospiti d\'eccezione.',
+    sponsor: SAMPLE_SLIDESHOW_SPONSOR
   },
   {
     id: 6,

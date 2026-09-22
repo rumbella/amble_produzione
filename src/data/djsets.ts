@@ -23,6 +23,7 @@
  */
 
 import { Song, MediaCategoryItem } from '../types';
+import { SAMPLE_DJSET_SPONSOR } from './sponsors';
 
 export const DJSET_ITEMS: MediaCategoryItem[] = [
   { 
@@ -33,7 +34,8 @@ export const DJSET_ITEMS: MediaCategoryItem[] = [
     seed: 302,
     tag: 'SELEZIONE CLUB',
     subtitle: 'DJ Set Selecta',
-    teaser: 'Groove esclusivi ed house d\'eccezione firmata Alex Neri: sessioni registrate live appositamente per Radio Amblè.'
+    teaser: 'Groove esclusivi ed house d\'eccezione firmata Alex Neri: sessioni registrate live appositamente per Radio Amblè.',
+    sponsor: SAMPLE_DJSET_SPONSOR
   },
   { 
     id: 1, 
