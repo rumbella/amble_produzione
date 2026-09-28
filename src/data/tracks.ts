@@ -45,19 +45,19 @@ export const PLAYLIST_SPOTLIGHT_TRACKS: SpotlightTrack[] = [
     title: "Another Day",
     artist: "Buckshot LeFonque",
     audioUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Playlist/Another%20Day%20_%20Bukshot%20Lefonque.mp3",
-    imageUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg"
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Progetto%20senza%20titolo%20(4).jpg"
   },
   {
     title: "Easy",
     artist: "Groove Armada",
     audioUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Playlist/Groove%20Armada%20_%20Easy.mp3",
-    imageUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg"
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Progetto%20senza%20titolo%20(4).jpg"
   },
   {
     title: "Bloodstream",
     artist: "Stateless",
     audioUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Playlist/Stateless%20_%20Bloodstream%20.mp3",
-    imageUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg"
+    imageUrl: "https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Progetto%20senza%20titolo%20(4).jpg"
   },
   {
     title: "Inside All the People",

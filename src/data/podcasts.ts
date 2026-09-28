@@ -26,7 +26,7 @@ export const PODCAST_ITEMS: PodcastItem[] = [
     id: 5,
     title: 'Scheggia Impazzita',
     author: 'Stiv Tirella',
-    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
+    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Progetto%20senza%20titolo%20(5).jpg',
     seed: 205,
     tag: 'PODCAST ESCLUSIVO',
     subtitle: 'Di Stiv Tirella',
@@ -74,7 +74,7 @@ export const MUSIC_PLAYLISTS: PlaylistCategoryItem[] = [
     tag: 'NUOVA PLAYLIST',
     subtitle: 'La selezione di Stiv',
     teaser: 'Una raffinata e trascinante selezione musicale a cura di Stiv Tirella con sonorità speciali e groove profondi.',
-    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20foto%203%20(1).jpg'
+    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Progetto%20senza%20titolo%20(4).jpg'
   }
 ];
 

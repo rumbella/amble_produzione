@@ -121,7 +121,7 @@ export const DJSET_ITEMS: MediaCategoryItem[] = [
     id: 10, 
     title: 'Stiv Tirella', 
     author: 'Stiv Tirella', 
-    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Siv%20T%20foto%201%20(1).jpg',
+    imageUrl: 'https://radioamble-cdn.b-cdn.net/Stiv%20Tirella/Immagini%20e%20bio/Progetto%20senza%20titolo%20(5).jpg',
     seed: 310,
     tag: 'SCHEGGIA IMPAZZITA',
     subtitle: 'Scheggia Impazzita',
