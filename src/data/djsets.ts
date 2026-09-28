@@ -41,7 +41,7 @@ export const DJSET_ITEMS: MediaCategoryItem[] = [
     id: 1, 
     title: 'Accademia italiana dj A.i.D.', 
     author: 'Radio Amblè', 
-    imageUrl: 'https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./immagini%20e%20video%20ai%20per%20AID/images%20(7)%20-%20Modificata%20(1).png',
+    imageUrl: 'https://radioamble-cdn.b-cdn.net/Accademia%20italiana%20dj%20A.i.D./immagini%20e%20video%20ai%20per%20AID/images%20(15).jpeg',
     seed: 301,
     tag: 'MIX ESCLUSIVO',
     subtitle: 'I talenti del domani',
