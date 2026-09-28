@@ -54,9 +54,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const playTrack = (trackUrl: string) => {
     if (!audioRef.current) return;
-    if (currentTrackUrl !== trackUrl) {
+    if (currentTrackUrl !== trackUrl || trackUrl === STREAM_URL) {
       if (trackUrl === STREAM_URL) {
         audioRef.current.src = `${trackUrl}?cb=${Date.now()}`;
+        audioRef.current.load();
       } else {
         audioRef.current.src = trackUrl;
       }

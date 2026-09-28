@@ -26,11 +26,8 @@ export function SinglePlaylistView() {
     <motion.main
       className="absolute inset-0 z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
-      {/* Level 3: Scoped Full-Page Background (Sponsor Video/Slideshow or Neutral solid #0a0a0a) */}
-      <PageBackground 
-        type={sponsor ? sponsor.backgroundType : 'neutral'}
-        src={sponsor ? sponsor.backgroundSrc : undefined}
-      />
+      {/* Level 3: Scoped Full-Page Background (Neutral solid #0a0a0a on tracklist) */}
+      <PageBackground type="neutral" />
 
       {/* Sponsor Marquee Bar if entity has sponsor */}
       {sponsor && (
