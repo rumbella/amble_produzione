@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ContentGrid, MOCK_GRID_ITEMS, MOCK_FEATURED_SLOTS } from './ContentGrid';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 
 export function ExploreView() {
+  const scrollRef = useScrollMemory();
+
   const handleActionClick = (item: any, actionType: string) => {
     console.log(`Action triggered on item ${item.id}: ${actionType}`);
     // Show a gentle non-blocking alert or log
@@ -10,6 +13,7 @@ export function ExploreView() {
 
   return (
     <motion.main
+      ref={scrollRef}
       className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 pb-44 md:pb-32 md:pl-[104px]">

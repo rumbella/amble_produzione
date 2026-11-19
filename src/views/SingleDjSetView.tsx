@@ -10,6 +10,7 @@ import SongRowItem from '../components/SongRowItem';
 import DjSetStackSwipe from '../components/DjSetStackSwipe';
 import TracksBottomSheet from '../components/TracksBottomSheet';
 import { usePlayer } from '../contexts/PlayerContext';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 
 export function SingleDjSetView() {
   const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
@@ -17,6 +18,7 @@ export function SingleDjSetView() {
   const navigate = useNavigate();
   const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const scrollRef = useScrollMemory();
 
   const sponsor = playlist?.sponsor;
   const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
@@ -52,9 +54,12 @@ export function SingleDjSetView() {
       )}
 
       {/* Content Area */}
-      <div className={`absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 ${
-        sponsor ? 'page-top-spacing-sponsored' : 'page-top-spacing'
-      } md:pl-[104px]`}>
+      <div 
+        ref={scrollRef}
+        className={`absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 ${
+          sponsor ? 'page-top-spacing-sponsored' : 'page-top-spacing'
+        } md:pl-[104px]`}
+      >
         <div className="w-full max-w-[1200px] mx-auto pb-44">
           
           {/* Hero Section */}

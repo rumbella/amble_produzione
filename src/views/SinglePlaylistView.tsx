@@ -8,12 +8,14 @@ import { SponsorMarquee } from '../components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal';
 import SongRowItem from '../components/SongRowItem';
 import { usePlayer } from '../contexts/PlayerContext';
+import { useScrollMemory } from '../hooks/useScrollMemory';
 
 export function SinglePlaylistView() {
   const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
   const { id } = useParams();
   const navigate = useNavigate();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
+  const scrollRef = useScrollMemory();
 
   const sponsor = playlist?.sponsor;
   const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
@@ -49,9 +51,12 @@ export function SinglePlaylistView() {
       )}
 
       {/* Main Content Scroll Container */}
-      <div className={`absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 ${
-        sponsor ? 'page-top-spacing-sponsored' : 'page-top-spacing'
-      } md:pl-[104px]`}>
+      <div 
+        ref={scrollRef}
+        className={`absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 ${
+          sponsor ? 'page-top-spacing-sponsored' : 'page-top-spacing'
+        } md:pl-[104px]`}
+      >
         <div className="w-full max-w-[1200px] mx-auto pb-44">
           
           {/* Hero Section / Playlist Spotlight Banner */}

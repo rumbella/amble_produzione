@@ -23,6 +23,10 @@ import PlayerTicker from './components/PlayerTicker';
 
 import { useViewportHeight } from './hooks/useViewportHeight';
 import { usePlayerHeightObserver } from './hooks/usePlayerHeightObserver';
+import { useScrollMemory, setPreviousPathname, isRestoringScroll, registerScrollResetListener } from './hooks/useScrollMemory';
+import AdminHome from './pages/AdminHome';
+import { HomeBackground } from './components/HomeBackground';
+import { useHomepageConfig } from './hooks/useHomepageConfig';
 import { PageBackground } from './components/PageBackground';
 import { SponsorMarquee } from './components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from './components/SponsorSpotModal';
@@ -128,9 +132,11 @@ const getBentoConfig = (index: number, total: number) => {
 function PlaylistView() {
   const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
+  const scrollRef = useScrollMemory();
 
   return (
     <motion.main
+      ref={scrollRef}
       className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
@@ -225,9 +231,11 @@ function PlaylistView() {
 function PodcastView() {
   const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
+  const scrollRef = useScrollMemory();
 
   return (
     <motion.main
+      ref={scrollRef}
       className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
@@ -321,6 +329,7 @@ function DjSetView() {
   const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
   const [isDesktop, setIsDesktop] = useState(false);
+  const scrollRef = useScrollMemory();
 
   useEffect(() => {
     const checkIsDesktop = () => {
@@ -355,6 +364,7 @@ function DjSetView() {
 
   return (
     <motion.main
+      ref={scrollRef}
       className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 pb-44 md:pb-32 md:pl-[104px]">
@@ -389,9 +399,11 @@ function DjSetView() {
 function ProgrammiView() {
   const { isPlaying, togglePlay, currentTrackUrl } = usePlayer();
   const navigate = useNavigate();
+  const scrollRef = useScrollMemory();
 
   return (
     <motion.main
+      ref={scrollRef}
       className="absolute inset-0 z-30 w-full h-full min-h-full flex flex-col page-top-spacing overflow-y-auto bg-[#0a0a0a]"
     >
       <div className="w-full max-w-[1600px] md:max-w-[90%] mx-auto px-6 sm:px-10 md:pl-[104px]">
@@ -499,6 +511,7 @@ function MusikTalkView() {
   const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
   const navigate = useNavigate();
   const [bgUrl] = useState(() => "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(5).jpg");
+  const scrollRef = useScrollMemory();
 
   return (
     <motion.main
@@ -508,7 +521,10 @@ function MusikTalkView() {
       <PageBackground type="image" src={bgUrl} />
 
       {/* Content Area */}
-      <div className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 page-top-spacing md:pl-[104px]">
+      <div 
+        ref={scrollRef}
+        className="absolute inset-0 overflow-y-auto z-10 w-full h-full flex flex-col p-6 sm:p-10 page-top-spacing md:pl-[104px]"
+      >
         <div className="w-full max-w-[1200px] mx-auto pb-44">
           
           {/* Hero Section */}
@@ -751,30 +767,26 @@ function SingleMusikTalkEpisodeView() {
   );
 }
 
-interface HomeViewProps {
-  videoSrc?: string;
-}
-
-function HomeView({ videoSrc }: HomeViewProps = {}) {
+function HomeView() {
   const { isPlaying, userLikes, togglePlay, toggleLike, currentTrackUrl } = usePlayer();
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
+  const homeConfig = useHomepageConfig();
   const itemId = 'radio-amble-live';
   const isLiked = userLikes?.includes(itemId) || false;
   const isStreamPlaying = isPlaying && (currentTrackUrl === "https://mqugxowc-lbmedia.radioca.st/stream" || currentTrackUrl === null);
-
-  // Level 1: Data-driven single configurable background for homepage
-  const currentBgType = videoSrc ? 'video' : activeHomeBackground.type;
-  const currentBgSrc = videoSrc || activeHomeBackground.src;
 
   return (
     <motion.main
       className="relative z-10 w-full h-full flex flex-col items-center overflow-hidden bg-transparent"
     >
       {/* Level 1: Scoped edge-to-edge full page background */}
-      <PageBackground 
-        type={currentBgType}
-        src={currentBgSrc}
-      />
+      <div
+        className="fixed inset-0 w-full -z-10 pointer-events-none overflow-hidden select-none bg-[#0a0a0a]"
+        style={{ height: 'var(--app-height, 100dvh)' }}
+        aria-hidden="true"
+      >
+        <HomeBackground config={homeConfig} />
+      </div>
 
       {/* The Player Box in normal flex flow */}
       <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end pt-16 sm:pt-20 pb-2 md:pb-6 px-6 overflow-hidden mx-auto pointer-events-auto">
@@ -782,7 +794,7 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
         <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
           <PlayerTicker />
           <div 
-            className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
+            className="glass-panel animated-gradient-border w-full px-6 pt-4 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
           >
             {/* Custom partnership text */}
             <span className="text-[9px] tracking-wider text-white/40 font-sans mt-1 mb-2">
@@ -804,7 +816,7 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
               />
             </a>
             
-            <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-1 mb-4">
+            <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-1 mb-6">
               radio amblè live
             </p>
 
@@ -817,17 +829,38 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
                 <Heart size={22} strokeWidth={isLiked ? 2.5 : 1} className={isLiked ? "fill-white" : ""} />
               </button>
 
-              <button 
-                onClick={() => togglePlay()}
-                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform ${isStreamPlaying ? 'play-pulse' : ''}`}
-                aria-label={isStreamPlaying ? "Pause" : "Play"}
-              >
-                {isStreamPlaying ? ( 
-                  <Pause className="w-6 h-6 sm:w-7 sm:h-7 fill-black" strokeWidth={2} /> 
-                ) : ( 
-                  <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-black" strokeWidth={2} /> 
+              <div className="relative flex items-center justify-center">
+                {isStreamPlaying && (
+                  <>
+                    <span 
+                      aria-hidden="true" 
+                      className="absolute inset-0 ripple-ring"
+                      style={{ animationDelay: '0s' }}
+                    />
+                    <span 
+                      aria-hidden="true" 
+                      className="absolute inset-0 ripple-ring"
+                      style={{ animationDelay: '1s' }}
+                    />
+                    <span 
+                      aria-hidden="true" 
+                      className="absolute inset-0 ripple-ring"
+                      style={{ animationDelay: '2s' }}
+                    />
+                  </>
                 )}
-              </button>
+                <button 
+                  onClick={() => togglePlay()}
+                  className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform"
+                  aria-label={isStreamPlaying ? "Pause" : "Play"}
+                >
+                  {isStreamPlaying ? ( 
+                    <Pause className="w-6 h-6 sm:w-7 sm:h-7 fill-black" strokeWidth={2} /> 
+                  ) : ( 
+                    <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-black" strokeWidth={2} /> 
+                  )}
+                </button>
+              </div>
 
               <button 
                 className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
@@ -862,11 +895,12 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const lastScrollTop = useRef(0);
 
-  // Preload homepage backgrounds
+  // Synchronize header with scroll restoration from useScrollMemory
   useEffect(() => {
-    HOMEPAGE_BACKGROUNDS.forEach((src) => {
-      const img = new Image();
-      img.src = src;
+    return registerScrollResetListener((restoredScrollTop: number) => {
+      lastScrollTop.current = restoredScrollTop;
+      setShowHeader(true);
+      setIsScrolled(restoredScrollTop > 20);
     });
   }, []);
 
@@ -885,6 +919,14 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
 
       const scrollTop = target.scrollTop;
       
+      // If we are currently restoring scroll, do NOT hide the header
+      if (isRestoringScroll()) {
+        setShowHeader(true);
+        setIsScrolled(scrollTop > 20);
+        lastScrollTop.current = scrollTop;
+        return;
+      }
+
       setIsScrolled(scrollTop > 20);
 
       // If we are on the homepage, always show the header
@@ -914,8 +956,10 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
   // Reset header state on route change
   useEffect(() => {
     setShowHeader(true);
-    setIsScrolled(false);
-    lastScrollTop.current = 0;
+    if (!isRestoringScroll()) {
+      setIsScrolled(false);
+      lastScrollTop.current = 0;
+    }
   }, [location.pathname]);
 
   const getDepth = (path: string) => path === '/' ? 0 : path.split('/').filter(Boolean).length;
@@ -926,6 +970,7 @@ function HomeView({ videoSrc }: HomeViewProps = {}) {
     const prevDepth = getDepth(prevPathRef.current);
     const currDepth = getDepth(location.pathname);
     directionRef.current = currDepth < prevDepth ? -1 : 1;
+    setPreviousPathname(prevPathRef.current);
     prevPathRef.current = location.pathname;
   }
   
@@ -1295,9 +1340,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <PlayerProvider>
-          <AppContent />
-        </PlayerProvider>
+        {window.location.pathname.startsWith('/admin') ? (
+          <AdminHome />
+        ) : (
+          <PlayerProvider>
+            <AppContent />
+          </PlayerProvider>
+        )}
       </AuthProvider>
     </BrowserRouter>
   );
