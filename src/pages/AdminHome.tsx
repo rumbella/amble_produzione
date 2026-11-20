@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowDown, ArrowUp, Image as ImageIcon, Film, Layers, Plus, Trash2, Save, LogOut } from 'lucide-react';
 import { HomeBackground } from '../components/HomeBackground';
+import { PlayerSponsor } from '../components/PlayerSponsor';
 import { FALLBACK_CONFIG, fetchHomepageConfig } from '../hooks/useHomepageConfig';
 import {
   CDN_BASE,
+  DEFAULT_SPONSOR,
   detectMediaType,
+  HomeSponsor,
   HomeBgMode,
   HomeMediaItem,
   HomeMediaType,
@@ -172,6 +175,84 @@ function ItemFields({
   );
 }
 
+/* ---------- Sponsor del player ---------- */
+
+function SponsorFields({ sponsor, onChange }: { sponsor: HomeSponsor; onChange: (s: HomeSponsor) => void }) {
+  const set = (patch: Partial<HomeSponsor>) => onChange({ ...sponsor, ...patch });
+  const wrongLogo = sponsor.logoUrl && !sponsor.logoUrl.startsWith(CDN_BASE + '/');
+  const wrongLink = sponsor.link && !/^https:\/\//.test(sponsor.link);
+
+  return (
+    <div className="space-y-3 rounded-lg border border-white/10 p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs uppercase tracking-widest text-white/50">Sponsor nel player</h2>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={sponsor.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
+          {sponsor.enabled ? 'Visibile' : 'Nascosto'}
+        </label>
+      </div>
+
+      {sponsor.enabled && (
+        <>
+          <div className="flex gap-3 items-start">
+            <div className="w-24 h-16 rounded bg-[#0c0c0e] border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+              {sponsor.logoUrl && <img src={sponsor.logoUrl} alt="" className="max-w-full max-h-full object-contain" />}
+            </div>
+            <div className="flex-1 space-y-2 min-w-0">
+              <input
+                className={inputCls}
+                value={sponsor.logoUrl}
+                placeholder={`${CDN_BASE}/sponsor/logo.png`}
+                onChange={(e) => set({ logoUrl: cleanUrl(e.target.value) })}
+              />
+              {wrongLogo && <p className="text-amber-400 text-xs">Il logo deve essere un link Bunny ({CDN_BASE}/…)</p>}
+              <p className="text-xs text-white/40">Meglio PNG o SVG con sfondo trasparente e logo chiaro: il player è scuro.</p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-2">
+            <input
+              className={inputCls}
+              value={sponsor.name}
+              placeholder="Nome sponsor"
+              maxLength={60}
+              onChange={(e) => set({ name: e.target.value })}
+            />
+            <input
+              className={inputCls}
+              value={sponsor.label}
+              placeholder="Testo sopra il logo (es. sponsored by)"
+              maxLength={40}
+              onChange={(e) => set({ label: e.target.value })}
+            />
+          </div>
+
+          <input
+            className={inputCls}
+            value={sponsor.link ?? ''}
+            placeholder="https://sito-dello-sponsor.com (facoltativo)"
+            onChange={(e) => set({ link: e.target.value.trim() || undefined })}
+          />
+          {wrongLink && <p className="text-amber-400 text-xs">Il link deve iniziare con https://</p>}
+
+          <label className="block text-xs text-white/60">
+            Dimensione logo · {Math.round(sponsor.scale * 100)}%
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={sponsor.scale}
+              onChange={(e) => set({ scale: Number(e.target.value) })}
+              className="w-full mt-1"
+            />
+          </label>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ---------- Pagina ---------- */
 
 const MODES: { id: HomeBgMode; label: string; Icon: typeof Film }[] = [
@@ -190,7 +271,7 @@ function Editor({ password, onLogout }: { password: string; onLogout: () => void
     fetchHomepageConfig().then((c) => setDraft(c ?? FALLBACK_CONFIG));
   }, []);
 
-  if (!draft) return <div className="min-h-[100dvh] bg-[#0a0a0a] text-white/60 p-8">Carico la configurazione…</div>;
+  if (!draft) return <div className="h-[100dvh] overflow-y-auto bg-[#0a0a0a] text-white/60 p-8">Carico la configurazione…</div>;
 
   const update = (patch: Partial<HomepageConfig>) => {
     setDraft({ ...draft, ...patch });
@@ -247,7 +328,7 @@ function Editor({ password, onLogout }: { password: string; onLogout: () => void
     (draft.mode === 'slideshow' && slides.some((s) => s.url));
 
   return (
-    <div className="min-h-[100dvh] bg-[#0a0a0a] text-white">
+    <div className="h-[100dvh] overflow-y-auto overscroll-contain bg-[#0a0a0a] text-white">
       <header className="sticky top-0 z-20 flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#0a0a0a]/90 backdrop-blur">
         <h1 className="font-space font-bold tracking-widest text-sm">RADIOAMBLÈ · HOMEPAGE</h1>
         <div className="flex items-center gap-2">
@@ -398,6 +479,11 @@ function Editor({ password, onLogout }: { password: string; onLogout: () => void
             <p className="text-xs text-white/40 mt-1">Alza se testi e player si leggono male sopra lo sfondo.</p>
           </div>
 
+          <SponsorFields
+            sponsor={draft.sponsor ?? DEFAULT_SPONSOR}
+            onChange={(sponsor) => update({ sponsor })}
+          />
+
           {draft.updatedAt && (
             <p className="text-xs text-white/30">Ultimo salvataggio: {new Date(draft.updatedAt).toLocaleString('it-IT')}</p>
           )}
@@ -414,6 +500,12 @@ function Editor({ password, onLogout }: { password: string; onLogout: () => void
                 Inserisci un link per vedere l'anteprima
               </div>
             )}
+            {/* Player semplificato, per vedere il logo sponsor sopra lo sfondo */}
+            <div className="absolute inset-x-3 bottom-8 rounded-xl bg-[#0c0c0e]/45 backdrop-blur-md border border-white/15 px-3 py-3 flex flex-col items-center text-center">
+              <PlayerSponsor sponsor={draft.sponsor ?? DEFAULT_SPONSOR} />
+              <p className="font-sans text-[8px] tracking-[0.15em] text-white/70 uppercase mt-1">radio amblè live</p>
+              <div className="mt-2 w-9 h-9 rounded-full bg-white" />
+            </div>
           </div>
         </aside>
       </div>

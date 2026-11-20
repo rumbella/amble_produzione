@@ -1,0 +1,978 @@
+Aggiungo alla dashboard /admin la gestione del logo sponsor nel player della homepage. Ti allego in fondo 5 file: creali o sostituiscili ESATTAMENTE come sono, senza modificarli.
+
+- src/types/homepage.ts           → SOSTITUISCI (aggiunge HomeSponsor e DEFAULT_SPONSOR)
+- src/hooks/useHomepageConfig.ts  → SOSTITUISCI (aggiunge lo sponsor di default)
+- src/components/PlayerSponsor.tsx → NUOVO (il blocco "sponsored by + logo")
+- src/pages/AdminHome.tsx         → SOSTITUISCI (aggiunge la sezione "Sponsor nel player"; contiene già la correzione dello scroll h-[100dvh] overflow-y-auto)
+- api/homepage.ts                 → SOSTITUISCI (salva anche i dati dello sponsor; esporta sempre POST, quindi netlify/functions/homepage.mts NON va toccato)
+
+Poi fai SOLO questa modifica in src/App.tsx, dentro HomeView:
+
+1) Aggiungi l'import:  import { PlayerSponsor } from './components/PlayerSponsor';
+2) Nel player della homepage trova il blocco dello sponsor scritto a mano: lo <span> con "sponsored by" (o "sponsored by Disclaimer Official") e il link <a href="https://disclaimerofficial.com/"> che contiene l'<img> del logo Disclaimer. Sostituisci TUTTO quel blocco (span + a + img) con:
+   <PlayerSponsor sponsor={homeConfig.sponsor} />
+3) homeConfig è la configurazione già usata per <HomeBackground config={homeConfig} />. Se in HomeView non è disponibile, aggiungi in HomeView: const homeConfig = useHomepageConfig(); (useHomepageConfig è già importato da './hooks/useHomepageConfig').
+
+REGOLE:
+- Non toccare il resto del player: il testo "radio amblè live", i pulsanti like / play / share e il PlayerTicker (marquee) restano identici.
+- Non toccare netlify/functions/homepage.mts, netlify.toml, vercel.json, index.css.
+- Nessuna nuova dipendenza npm.
+
+Alla fine esegui build e typecheck e mostrami il diff di App.tsx.
+
+==================== FILE ====================
+
+
+----- FILE: src/types/homepage.ts -----
+// Configurazione dello sfondo homepage, salvata su Bunny in /config/homepage.json
+
+export type HomeMediaType = 'image' | 'video';
+export type HomeBgMode = 'image' | 'video' | 'slideshow';
+
+export interface HomeMediaItem {
+  id: string;
+  type: HomeMediaType;
+  /** Link Bunny del file (https://radioamble-cdn.b-cdn.net/...) */
+  url: string;
+  /** Solo video: immagine mostrata mentre il video carica o se l'autoplay è bloccato */
+  poster?: string;
+  /**
+   * Secondi di permanenza nello slideshow.
+   * Immagini: se assente usa imageDuration. Video: se assente il video gira fino alla fine.
+   */
+  duration?: number;
+}
+
+export interface HomepageConfig {
+  version: 1;
+  updatedAt: string;
+  /** Cosa è attivo adesso in homepage */
+  mode: HomeBgMode;
+  /** Le tre impostazioni restano salvate tutte: cambiando modalità non si perde nulla */
+  image?: HomeMediaItem;
+  video?: HomeMediaItem;
+  slides: HomeMediaItem[];
+  /** Secondi di default per ogni immagine nello slideshow */
+  imageDuration: number;
+  /** Scurimento sopra lo sfondo, da 0 a 0.9 */
+  overlay: number;
+  /** Sponsor mostrato nel player della homepage (se assente: Disclaimer, come oggi) */
+  sponsor?: HomeSponsor;
+}
+
+export interface HomeSponsor {
+  /** false = il player non mostra nessuno sponsor */
+  enabled: boolean;
+  /** Testo piccolo sopra il logo, es. "sponsored by" */
+  label: string;
+  /** Nome dello sponsor (testo alternativo del logo e tooltip) */
+  name: string;
+  /** Logo su Bunny, meglio PNG/SVG trasparente e chiaro (il player è scuro) */
+  logoUrl: string;
+  /** Sito dello sponsor (facoltativo) */
+  link?: string;
+  /** Dimensione del logo, da 0.5 a 2 (1 = standard) */
+  scale: number;
+}
+
+export const DEFAULT_SPONSOR: HomeSponsor = {
+  enabled: true,
+  label: 'sponsored by',
+  name: 'Disclaimer Official',
+  logoUrl:
+    'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/Screenshot_2026-06-15_11.39.16-removebg-preview.png',
+  link: 'https://disclaimerofficial.com/',
+  // il PNG Disclaimer ha molto margine trasparente: leggermente più grande
+  scale: 1.3,
+};
+
+export const CDN_BASE = 'https://radioamble-cdn.b-cdn.net';
+export const HOMEPAGE_CONFIG_URL = `${CDN_BASE}/config/homepage.json`;
+
+export function detectMediaType(url: string): HomeMediaType {
+  return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url) ? 'video' : 'image';
+}
+
+/** Gli elementi effettivamente mostrati in base alla modalità scelta */
+export function activeItems(config: HomepageConfig): HomeMediaItem[] {
+  if (config.mode === 'image') return config.image ? [config.image] : [];
+  if (config.mode === 'video') return config.video ? [config.video] : [];
+  return config.slides ?? [];
+}
+
+function isItem(i: unknown): i is HomeMediaItem {
+  if (!i || typeof i !== 'object') return false;
+  const it = i as HomeMediaItem;
+  return typeof it.url === 'string' && (it.type === 'image' || it.type === 'video');
+}
+
+/** Controllo che il JSON scaricato abbia la forma giusta e mostri almeno qualcosa */
+export function isHomepageConfig(value: unknown): value is HomepageConfig {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as HomepageConfig;
+  if (!(v.mode === 'image' || v.mode === 'video' || v.mode === 'slideshow')) return false;
+  if (v.image !== undefined && !isItem(v.image)) return false;
+  if (v.video !== undefined && !isItem(v.video)) return false;
+  if (!Array.isArray(v.slides) || !v.slides.every(isItem)) return false;
+  if (v.sponsor !== undefined && (typeof v.sponsor !== 'object' || typeof v.sponsor.logoUrl !== 'string')) return false;
+  return activeItems(v).length > 0;
+}
+
+----- FINE FILE: src/types/homepage.ts -----
+
+
+----- FILE: src/hooks/useHomepageConfig.ts -----
+import { useEffect, useState } from 'react';
+import { DEFAULT_SPONSOR, HOMEPAGE_CONFIG_URL, HomepageConfig, isHomepageConfig } from '../types/homepage';
+
+const LOCAL_KEY = 'ra_homepage_config';
+
+// Usato se il JSON su Bunny non esiste ancora o non si carica: sono gli sfondi attuali.
+const FALLBACK_IMAGES = [
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1302.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A0466.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1066.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1321.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1781.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A1814.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A2168.jpg',
+  'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/6P9A2047.jpg',
+];
+
+export const FALLBACK_CONFIG: HomepageConfig = {
+  version: 1,
+  updatedAt: '',
+  mode: 'slideshow',
+  slides: FALLBACK_IMAGES.map((url, i) => ({ id: `fallback-${i}`, type: 'image', url })),
+  imageDuration: 10,
+  overlay: 0.55,
+  sponsor: DEFAULT_SPONSOR,
+};
+
+function readLocal(): HomepageConfig | null {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return isHomepageConfig(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLocal(config: HomepageConfig) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(config));
+  } catch {
+    /* storage non disponibile: pazienza */
+  }
+}
+
+export async function fetchHomepageConfig(): Promise<HomepageConfig | null> {
+  try {
+    const res = await fetch(HOMEPAGE_CONFIG_URL, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return isHomepageConfig(data) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Mostra subito l'ultima configurazione vista (salvata nel browser) o quella di default,
+ * poi scarica quella aggiornata da Bunny.
+ */
+export function useHomepageConfig(): HomepageConfig {
+  const [config, setConfig] = useState<HomepageConfig>(() => readLocal() ?? FALLBACK_CONFIG);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchHomepageConfig().then((fresh) => {
+      if (cancelled || !fresh) return;
+      writeLocal(fresh);
+      setConfig((prev) => (JSON.stringify(prev) === JSON.stringify(fresh) ? prev : fresh));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return config;
+}
+
+----- FINE FILE: src/hooks/useHomepageConfig.ts -----
+
+
+----- FILE: src/components/PlayerSponsor.tsx -----
+import React from 'react';
+import { DEFAULT_SPONSOR, HomeSponsor } from '../types/homepage';
+
+/**
+ * Blocco "sponsored by + logo" del player in homepage.
+ * La dimensione si regola dalla dashboard (scale); l'altezza segue la larghezza dello schermo.
+ */
+export function PlayerSponsor({ sponsor }: { sponsor?: HomeSponsor }) {
+  const s = sponsor ?? DEFAULT_SPONSOR;
+  if (!s.enabled || !s.logoUrl) return null;
+
+  const scale = Math.min(Math.max(s.scale || 1, 0.5), 2);
+
+  const logo = (
+    <img
+      src={s.logoUrl}
+      alt={s.name || 'Sponsor'}
+      className="w-auto max-w-[260px] object-contain select-none pointer-events-none"
+      style={{ height: `calc(${scale} * clamp(48px, 11vw, 80px))` }}
+      referrerPolicy="no-referrer"
+    />
+  );
+
+  return (
+    <div className="flex flex-col items-center">
+      {s.label && <span className="text-[9px] tracking-wider text-white/40 font-sans mt-1 mb-1">{s.label}</span>}
+      {s.link ? (
+        <a
+          href={s.link}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          className="flex items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105"
+          title={`Visita ${s.name || s.link.replace(/^https?:\/\/(www\.)?/, '')}`}
+        >
+          {logo}
+        </a>
+      ) : (
+        <div className="flex items-center justify-center">{logo}</div>
+      )}
+    </div>
+  );
+}
+
+----- FINE FILE: src/components/PlayerSponsor.tsx -----
+
+
+----- FILE: src/pages/AdminHome.tsx -----
+import React, { useEffect, useState } from 'react';
+import { ArrowDown, ArrowUp, Image as ImageIcon, Film, Layers, Plus, Trash2, Save, LogOut } from 'lucide-react';
+import { HomeBackground } from '../components/HomeBackground';
+import { PlayerSponsor } from '../components/PlayerSponsor';
+import { FALLBACK_CONFIG, fetchHomepageConfig } from '../hooks/useHomepageConfig';
+import {
+  CDN_BASE,
+  DEFAULT_SPONSOR,
+  detectMediaType,
+  HomeSponsor,
+  HomeBgMode,
+  HomeMediaItem,
+  HomeMediaType,
+  HomepageConfig,
+} from '../types/homepage';
+
+const PW_KEY = 'ra_admin_pw';
+
+const newId = () => Math.random().toString(36).slice(2, 10);
+
+function cleanUrl(raw: string) {
+  // Bunny accetta spazi codificati: li sistemiamo noi se si incolla un link "grezzo"
+  return raw.trim().replace(/ /g, '%20');
+}
+
+function readPw() {
+  try {
+    return sessionStorage.getItem(PW_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+async function callApi(password: string, body: unknown) {
+  const res = await fetch('/api/homepage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Errore ${res.status}`);
+  return data;
+}
+
+/* ---------- Login ---------- */
+
+function Login({ onOk }: { onOk: (pw: string) => void }) {
+  const [pw, setPw] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await callApi(pw, { check: true });
+      try {
+        sessionStorage.setItem(PW_KEY, pw);
+      } catch {
+        /* ok anche senza */
+      }
+      onOk(pw);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[#0a0a0a] p-6">
+      <form onSubmit={submit} className="w-full max-w-sm space-y-4">
+        <h1 className="font-space text-white text-xl font-bold tracking-widest">RADIOAMBLÈ · ADMIN</h1>
+        <input
+          type="password"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          placeholder="Password"
+          autoFocus
+          className="w-full rounded-lg bg-white/5 border border-white/15 px-4 py-3 text-white outline-none focus:border-white/40"
+        />
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+        <button
+          disabled={busy || !pw}
+          className="w-full rounded-lg bg-white text-black font-bold py-3 disabled:opacity-40"
+        >
+          {busy ? 'Verifico…' : 'Entra'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ---------- Campi riutilizzabili ---------- */
+
+const inputCls =
+  'w-full rounded-md bg-white/5 border border-white/15 px-3 py-2 text-sm text-white outline-none focus:border-white/40 placeholder:text-white/30';
+
+function Thumb({ item }: { item: HomeMediaItem }) {
+  if (!item.url) return <div className="w-16 h-24 rounded bg-white/5 shrink-0" />;
+  return item.type === 'video' ? (
+    <video src={item.url} poster={item.poster} muted playsInline preload="metadata" className="w-16 h-24 object-cover rounded shrink-0 bg-white/5" />
+  ) : (
+    <img src={item.url} alt="" className="w-16 h-24 object-cover rounded shrink-0 bg-white/5" />
+  );
+}
+
+function ItemFields({
+  item,
+  onChange,
+  fixedType,
+  showDuration,
+}: {
+  item: HomeMediaItem;
+  onChange: (next: HomeMediaItem) => void;
+  fixedType?: HomeMediaType;
+  showDuration?: boolean;
+}) {
+  const set = (patch: Partial<HomeMediaItem>) => onChange({ ...item, ...patch });
+  const wrongBase = item.url && !item.url.startsWith(CDN_BASE + '/');
+
+  return (
+    <div className="flex gap-3 items-start">
+      <Thumb item={item} />
+      <div className="flex-1 space-y-2 min-w-0">
+        <input
+          className={inputCls}
+          value={item.url}
+          placeholder={`${CDN_BASE}/cartella/file.${item.type === 'video' ? 'mp4' : 'jpg'}`}
+          onChange={(e) => {
+            const url = cleanUrl(e.target.value);
+            set(fixedType ? { url } : { url, type: url ? detectMediaType(url) : item.type });
+          }}
+        />
+        {wrongBase && <p className="text-amber-400 text-xs">Il link deve essere di Bunny ({CDN_BASE}/…)</p>}
+
+        <div className="flex flex-wrap gap-2 items-center">
+          {!fixedType && (
+            <select
+              className="rounded-md bg-white/5 border border-white/15 px-2 py-1.5 text-xs text-white"
+              value={item.type}
+              onChange={(e) => set({ type: e.target.value as HomeMediaType })}
+            >
+              <option value="image">Immagine</option>
+              <option value="video">Video</option>
+            </select>
+          )}
+          {showDuration && (
+            <label className="flex items-center gap-1 text-xs text-white/60">
+              Secondi
+              <input
+                type="number"
+                min={2}
+                max={600}
+                className="w-16 rounded-md bg-white/5 border border-white/15 px-2 py-1.5 text-xs text-white"
+                value={item.duration ?? ''}
+                placeholder={item.type === 'video' ? 'fine' : 'auto'}
+                onChange={(e) => set({ duration: e.target.value ? Number(e.target.value) : undefined })}
+              />
+            </label>
+          )}
+        </div>
+
+        {item.type === 'video' && (
+          <input
+            className={inputCls}
+            value={item.poster ?? ''}
+            placeholder="Poster (immagine Bunny) — consigliato per mobile"
+            onChange={(e) => set({ poster: cleanUrl(e.target.value) || undefined })}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Sponsor del player ---------- */
+
+function SponsorFields({ sponsor, onChange }: { sponsor: HomeSponsor; onChange: (s: HomeSponsor) => void }) {
+  const set = (patch: Partial<HomeSponsor>) => onChange({ ...sponsor, ...patch });
+  const wrongLogo = sponsor.logoUrl && !sponsor.logoUrl.startsWith(CDN_BASE + '/');
+  const wrongLink = sponsor.link && !/^https:\/\//.test(sponsor.link);
+
+  return (
+    <div className="space-y-3 rounded-lg border border-white/10 p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs uppercase tracking-widest text-white/50">Sponsor nel player</h2>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={sponsor.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
+          {sponsor.enabled ? 'Visibile' : 'Nascosto'}
+        </label>
+      </div>
+
+      {sponsor.enabled && (
+        <>
+          <div className="flex gap-3 items-start">
+            <div className="w-24 h-16 rounded bg-[#0c0c0e] border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+              {sponsor.logoUrl && <img src={sponsor.logoUrl} alt="" className="max-w-full max-h-full object-contain" />}
+            </div>
+            <div className="flex-1 space-y-2 min-w-0">
+              <input
+                className={inputCls}
+                value={sponsor.logoUrl}
+                placeholder={`${CDN_BASE}/sponsor/logo.png`}
+                onChange={(e) => set({ logoUrl: cleanUrl(e.target.value) })}
+              />
+              {wrongLogo && <p className="text-amber-400 text-xs">Il logo deve essere un link Bunny ({CDN_BASE}/…)</p>}
+              <p className="text-xs text-white/40">Meglio PNG o SVG con sfondo trasparente e logo chiaro: il player è scuro.</p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-2">
+            <input
+              className={inputCls}
+              value={sponsor.name}
+              placeholder="Nome sponsor"
+              maxLength={60}
+              onChange={(e) => set({ name: e.target.value })}
+            />
+            <input
+              className={inputCls}
+              value={sponsor.label}
+              placeholder="Testo sopra il logo (es. sponsored by)"
+              maxLength={40}
+              onChange={(e) => set({ label: e.target.value })}
+            />
+          </div>
+
+          <input
+            className={inputCls}
+            value={sponsor.link ?? ''}
+            placeholder="https://sito-dello-sponsor.com (facoltativo)"
+            onChange={(e) => set({ link: e.target.value.trim() || undefined })}
+          />
+          {wrongLink && <p className="text-amber-400 text-xs">Il link deve iniziare con https://</p>}
+
+          <label className="block text-xs text-white/60">
+            Dimensione logo · {Math.round(sponsor.scale * 100)}%
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={sponsor.scale}
+              onChange={(e) => set({ scale: Number(e.target.value) })}
+              className="w-full mt-1"
+            />
+          </label>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Pagina ---------- */
+
+const MODES: { id: HomeBgMode; label: string; Icon: typeof Film }[] = [
+  { id: 'video', label: 'Video', Icon: Film },
+  { id: 'image', label: 'Immagine', Icon: ImageIcon },
+  { id: 'slideshow', label: 'Slideshow', Icon: Layers },
+];
+
+function Editor({ password, onLogout }: { password: string; onLogout: () => void }) {
+  const [draft, setDraft] = useState<HomepageConfig | null>(null);
+  const [bulk, setBulk] = useState('');
+  const [status, setStatus] = useState<{ kind: 'ok' | 'warn' | 'error'; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchHomepageConfig().then((c) => setDraft(c ?? FALLBACK_CONFIG));
+  }, []);
+
+  if (!draft) return <div className="h-[100dvh] overflow-y-auto bg-[#0a0a0a] text-white/60 p-8">Carico la configurazione…</div>;
+
+  const update = (patch: Partial<HomepageConfig>) => {
+    setDraft({ ...draft, ...patch });
+    setStatus(null);
+  };
+
+  const slides = draft.slides;
+  const setSlide = (i: number, item: HomeMediaItem) => update({ slides: slides.map((s, j) => (j === i ? item : s)) });
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= slides.length) return;
+    const copy = [...slides];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    update({ slides: copy });
+  };
+  const remove = (i: number) => update({ slides: slides.filter((_, j) => j !== i) });
+
+  const addBulk = () => {
+    const links = bulk
+      .split(/\r?\n/)
+      .map(cleanUrl)
+      .filter(Boolean);
+    if (!links.length) return;
+    update({
+      slides: [...slides, ...links.map((url) => ({ id: newId(), type: detectMediaType(url), url }))],
+    });
+    setBulk('');
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setStatus(null);
+    try {
+      const res = await callApi(password, draft);
+      setDraft(res.config);
+      setStatus(
+        res.purged
+          ? { kind: 'ok', text: 'Salvato. La homepage è aggiornata.' }
+          : { kind: 'warn', text: 'Salvato, ma la cache Bunny non è stata svuotata: il cambio può richiedere qualche minuto.' },
+      );
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg === 'Password errata') onLogout();
+      setStatus({ kind: 'error', text: msg });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Anteprima: per i video singoli serve almeno il link
+  const previewReady =
+    (draft.mode === 'image' && draft.image?.url) ||
+    (draft.mode === 'video' && draft.video?.url) ||
+    (draft.mode === 'slideshow' && slides.some((s) => s.url));
+
+  return (
+    <div className="h-[100dvh] overflow-y-auto overscroll-contain bg-[#0a0a0a] text-white">
+      <header className="sticky top-0 z-20 flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#0a0a0a]/90 backdrop-blur">
+        <h1 className="font-space font-bold tracking-widest text-sm">RADIOAMBLÈ · HOMEPAGE</h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex items-center gap-2 rounded-md bg-white text-black text-sm font-bold px-4 py-2 disabled:opacity-40"
+          >
+            <Save size={16} /> {saving ? 'Salvo…' : 'Salva e pubblica'}
+          </button>
+          <button onClick={onLogout} className="p-2 text-white/50 hover:text-white" aria-label="Esci">
+            <LogOut size={18} />
+          </button>
+        </div>
+      </header>
+
+      {status && (
+        <div
+          className={`mx-5 mt-4 rounded-md px-4 py-3 text-sm ${
+            status.kind === 'ok' ? 'bg-emerald-500/15 text-emerald-300' : status.kind === 'warn' ? 'bg-amber-500/15 text-amber-300' : 'bg-red-500/15 text-red-300'
+          }`}
+        >
+          {status.text}
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-[1fr_320px] gap-8 p-5">
+        <section className="space-y-6 min-w-0">
+          {/* Modalità */}
+          <div>
+            <h2 className="text-xs uppercase tracking-widest text-white/50 mb-2">Sfondo attivo</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {MODES.map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => update({ mode: id })}
+                  className={`flex flex-col items-center gap-1 rounded-lg border py-3 text-sm ${
+                    draft.mode === id ? 'border-white bg-white/10' : 'border-white/15 text-white/60 hover:border-white/40'
+                  }`}
+                >
+                  <Icon size={20} />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-white/40 mt-2">
+              Le tre impostazioni restano salvate: puoi preparare lo slideshow e attivarlo quando vuoi.
+            </p>
+          </div>
+
+          {draft.mode === 'video' && (
+            <div className="space-y-2">
+              <h2 className="text-xs uppercase tracking-widest text-white/50">Video in loop</h2>
+              <ItemFields
+                fixedType="video"
+                item={draft.video ?? { id: newId(), type: 'video', url: '' }}
+                onChange={(video) => update({ video: video.url ? video : undefined })}
+              />
+            </div>
+          )}
+
+          {draft.mode === 'image' && (
+            <div className="space-y-2">
+              <h2 className="text-xs uppercase tracking-widest text-white/50">Immagine fissa</h2>
+              <ItemFields
+                fixedType="image"
+                item={draft.image ?? { id: newId(), type: 'image', url: '' }}
+                onChange={(image) => update({ image: image.url ? image : undefined })}
+              />
+            </div>
+          )}
+
+          {draft.mode === 'slideshow' && (
+            <div className="space-y-4">
+              <div className="flex items-end gap-4 flex-wrap">
+                <label className="text-xs text-white/60">
+                  Secondi per immagine
+                  <input
+                    type="number"
+                    min={3}
+                    max={120}
+                    value={draft.imageDuration}
+                    onChange={(e) => update({ imageDuration: Number(e.target.value) || 10 })}
+                    className="block mt-1 w-24 rounded-md bg-white/5 border border-white/15 px-3 py-2 text-sm text-white"
+                  />
+                </label>
+                <p className="text-xs text-white/40 flex-1 min-w-[200px]">
+                  I video passano alla slide successiva quando finiscono, oppure dopo i secondi che imposti.
+                  Solo immagini = transizione "liquida" attuale; con video = dissolvenza.
+                </p>
+              </div>
+
+              <ol className="space-y-3">
+                {slides.map((s, i) => (
+                  <li key={s.id} className="rounded-lg border border-white/10 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-white/40">#{i + 1}</span>
+                      <div className="flex gap-1">
+                        <button onClick={() => move(i, -1)} disabled={i === 0} className="p-1.5 text-white/60 disabled:opacity-20" aria-label="Su">
+                          <ArrowUp size={16} />
+                        </button>
+                        <button onClick={() => move(i, 1)} disabled={i === slides.length - 1} className="p-1.5 text-white/60 disabled:opacity-20" aria-label="Giù">
+                          <ArrowDown size={16} />
+                        </button>
+                        <button onClick={() => remove(i)} className="p-1.5 text-red-400/80" aria-label="Elimina">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    <ItemFields item={s} onChange={(next) => setSlide(i, next)} showDuration />
+                  </li>
+                ))}
+              </ol>
+
+              <div className="space-y-2">
+                <textarea
+                  value={bulk}
+                  onChange={(e) => setBulk(e.target.value)}
+                  rows={3}
+                  placeholder="Incolla uno o più link Bunny (uno per riga): immagini e video, il tipo si riconosce da solo"
+                  className={inputCls}
+                />
+                <button
+                  onClick={addBulk}
+                  disabled={!bulk.trim()}
+                  className="flex items-center gap-2 rounded-md border border-white/20 px-3 py-2 text-sm disabled:opacity-30"
+                >
+                  <Plus size={16} /> Aggiungi allo slideshow
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Scurimento */}
+          <div>
+            <h2 className="text-xs uppercase tracking-widest text-white/50 mb-2">
+              Scurimento sfondo · {Math.round(draft.overlay * 100)}%
+            </h2>
+            <input
+              type="range"
+              min={0}
+              max={0.9}
+              step={0.05}
+              value={draft.overlay}
+              onChange={(e) => update({ overlay: Number(e.target.value) })}
+              className="w-full"
+            />
+            <p className="text-xs text-white/40 mt-1">Alza se testi e player si leggono male sopra lo sfondo.</p>
+          </div>
+
+          <SponsorFields
+            sponsor={draft.sponsor ?? DEFAULT_SPONSOR}
+            onChange={(sponsor) => update({ sponsor })}
+          />
+
+          {draft.updatedAt && (
+            <p className="text-xs text-white/30">Ultimo salvataggio: {new Date(draft.updatedAt).toLocaleString('it-IT')}</p>
+          )}
+        </section>
+
+        {/* Anteprima telefono */}
+        <aside className="md:sticky md:top-20 self-start">
+          <h2 className="text-xs uppercase tracking-widest text-white/50 mb-2">Anteprima (non ancora pubblicata)</h2>
+          <div className="relative w-full max-w-[300px] aspect-[9/19] rounded-[28px] overflow-hidden border border-white/15 bg-black">
+            {previewReady ? (
+              <HomeBackground config={draft} />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-xs text-white/30 p-6 text-center">
+                Inserisci un link per vedere l'anteprima
+              </div>
+            )}
+            {/* Player semplificato, per vedere il logo sponsor sopra lo sfondo */}
+            <div className="absolute inset-x-3 bottom-8 rounded-xl bg-[#0c0c0e]/45 backdrop-blur-md border border-white/15 px-3 py-3 flex flex-col items-center text-center">
+              <PlayerSponsor sponsor={draft.sponsor ?? DEFAULT_SPONSOR} />
+              <p className="font-sans text-[8px] tracking-[0.15em] text-white/70 uppercase mt-1">radio amblè live</p>
+              <div className="mt-2 w-9 h-9 rounded-full bg-white" />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminHome() {
+  const [password, setPassword] = useState(readPw);
+
+  const logout = () => {
+    try {
+      sessionStorage.removeItem(PW_KEY);
+    } catch {
+      /* niente */
+    }
+    setPassword('');
+  };
+
+  return password ? <Editor password={password} onLogout={logout} /> : <Login onOk={setPassword} />;
+}
+
+----- FINE FILE: src/pages/AdminHome.tsx -----
+
+
+----- FILE: api/homepage.ts -----
+// Salva la configurazione della homepage (sfondo + sponsor del player) su Bunny Storage.
+// Su Netlify la usa netlify/functions/homepage.mts; su Vercel funziona da sola come /api/homepage.
+// La chiave di Bunny resta qui sul server, mai nel browser.
+//
+// Variabili d'ambiente (Netlify: Site configuration > Environment variables · Vercel: Settings > Environment Variables):
+//   ADMIN_PASSWORD        password per entrare in /admin
+//   BUNNY_STORAGE_ZONE    nome della storage zone (es. radioamble)
+//   BUNNY_STORAGE_KEY     password della storage zone (Storage > FTP & API Access)
+//   BUNNY_STORAGE_HOST    opzionale, default storage.bunnycdn.com (cambia se la zona non è in Europa)
+//   BUNNY_API_KEY         API key dell'account (Account settings > API) per svuotare la cache
+//   BUNNY_CDN_BASE        opzionale, default https://radioamble-cdn.b-cdn.net
+
+import { createHash, timingSafeEqual } from 'node:crypto';
+
+const CONFIG_PATH = 'config/homepage.json';
+
+type MediaType = 'image' | 'video';
+type Mode = 'image' | 'video' | 'slideshow';
+
+interface Item {
+  id: string;
+  type: MediaType;
+  url: string;
+  poster?: string;
+  duration?: number;
+}
+
+function json(status: number, body: unknown) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  });
+}
+
+function sameSecret(a: string, b: string) {
+  const ha = createHash('sha256').update(a).digest();
+  const hb = createHash('sha256').update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
+function cleanConfig(input: unknown, cdnBase: string) {
+  if (!input || typeof input !== 'object') throw new Error('Dati mancanti');
+  const raw = input as Record<string, unknown>;
+
+  const mode = raw.mode as Mode;
+  if (!['image', 'video', 'slideshow'].includes(mode)) throw new Error('Modalità non valida');
+
+  const isBunny = (u: unknown): u is string => typeof u === 'string' && u.startsWith(cdnBase + '/');
+
+  const cleanItem = (r: unknown, label: string, forcedType?: MediaType): Item => {
+    const it = (r ?? {}) as Record<string, unknown>;
+    if (!isBunny(it.url)) throw new Error(`${label}: il link deve iniziare con ${cdnBase}/`);
+    const type = forcedType ?? it.type;
+    if (type !== 'image' && type !== 'video') throw new Error(`${label}: tipo non valido`);
+    if (it.poster !== undefined && it.poster !== '' && !isBunny(it.poster))
+      throw new Error(`${label}: anche il poster deve essere un link Bunny`);
+    const duration =
+      it.duration === undefined || it.duration === null || it.duration === '' ? undefined : Number(it.duration);
+    if (duration !== undefined && (!Number.isFinite(duration) || duration < 2 || duration > 600))
+      throw new Error(`${label}: durata tra 2 e 600 secondi`);
+    return {
+      id: typeof it.id === 'string' && it.id ? it.id.slice(0, 40) : `item-${Date.now()}`,
+      type,
+      url: it.url,
+      ...(it.poster ? { poster: it.poster as string } : {}),
+      ...(duration !== undefined ? { duration } : {}),
+    };
+  };
+
+  const image = raw.image ? cleanItem(raw.image, 'Immagine', 'image') : undefined;
+  const video = raw.video ? cleanItem(raw.video, 'Video', 'video') : undefined;
+
+  const rawSlides = Array.isArray(raw.slides) ? raw.slides : [];
+  if (rawSlides.length > 30) throw new Error('Slideshow: massimo 30 elementi');
+  const slides = rawSlides.map((s, i) => cleanItem(s, `Slide ${i + 1}`));
+
+  if (mode === 'image' && !image) throw new Error('Modalità immagine: inserisci il link dell’immagine');
+  if (mode === 'video' && !video) throw new Error('Modalità video: inserisci il link del video');
+  if (mode === 'slideshow' && slides.length === 0) throw new Error('Slideshow: aggiungi almeno un elemento');
+
+  // Sponsor del player
+  let sponsor: Record<string, unknown> | undefined;
+  if (raw.sponsor && typeof raw.sponsor === 'object') {
+    const sp = raw.sponsor as Record<string, unknown>;
+    const enabled = sp.enabled !== false;
+    const logoUrl = typeof sp.logoUrl === 'string' ? sp.logoUrl : '';
+    if (enabled && !isBunny(logoUrl)) throw new Error(`Sponsor: il logo deve essere un link Bunny (${cdnBase}/…)`);
+    const link = typeof sp.link === 'string' && sp.link.trim() ? sp.link.trim() : undefined;
+    if (link && !/^https:\/\/[^\s]+$/.test(link)) throw new Error('Sponsor: il link deve iniziare con https://');
+    const scale = Number(sp.scale ?? 1);
+    sponsor = {
+      enabled,
+      label: typeof sp.label === 'string' ? sp.label.slice(0, 40) : '',
+      name: typeof sp.name === 'string' ? sp.name.slice(0, 60) : '',
+      logoUrl,
+      ...(link ? { link: link.slice(0, 300) } : {}),
+      scale: Number.isFinite(scale) ? Math.min(Math.max(scale, 0.5), 2) : 1,
+    };
+  }
+
+  const imageDuration = Number(raw.imageDuration ?? 10);
+  const overlay = Number(raw.overlay ?? 0.55);
+
+  return {
+    version: 1 as const,
+    updatedAt: new Date().toISOString(),
+    mode,
+    ...(image ? { image } : {}),
+    ...(video ? { video } : {}),
+    slides,
+    imageDuration: Number.isFinite(imageDuration) ? Math.min(Math.max(imageDuration, 3), 120) : 10,
+    overlay: Number.isFinite(overlay) ? Math.min(Math.max(overlay, 0), 0.9) : 0.55,
+    ...(sponsor ? { sponsor } : {}),
+  };
+}
+
+async function putFile(path: string, body: string) {
+  const host = process.env.BUNNY_STORAGE_HOST || 'storage.bunnycdn.com';
+  const zone = process.env.BUNNY_STORAGE_ZONE!;
+  const res = await fetch(`https://${host}/${zone}/${path}`, {
+    method: 'PUT',
+    headers: {
+      AccessKey: process.env.BUNNY_STORAGE_KEY!,
+      'Content-Type': 'application/json',
+    },
+    body,
+  });
+  if (!res.ok) throw new Error(`Bunny Storage ha risposto ${res.status}`);
+}
+
+async function purge(url: string) {
+  const key = process.env.BUNNY_API_KEY;
+  if (!key) return false;
+  const res = await fetch(`https://api.bunny.net/purge?url=${encodeURIComponent(url)}&async=false`, {
+    method: 'POST',
+    headers: { AccessKey: key },
+  });
+  return res.ok;
+}
+
+export async function POST(request: Request): Promise<Response> {
+  if (request.method !== 'POST') return json(405, { error: 'Usa POST' });
+
+  const { ADMIN_PASSWORD, BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY } = process.env;
+  if (!ADMIN_PASSWORD || !BUNNY_STORAGE_ZONE || !BUNNY_STORAGE_KEY) {
+    return json(500, { error: 'Variabili d’ambiente mancanti sul server' });
+  }
+
+  const password = request.headers.get('x-admin-password') || '';
+  if (!sameSecret(password, ADMIN_PASSWORD)) {
+    return json(401, { error: 'Password errata' });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return json(400, { error: 'JSON non leggibile' });
+  }
+
+  // Richiesta di sola verifica password dal login della dashboard
+  if (body && typeof body === 'object' && (body as { check?: boolean }).check === true) {
+    return json(200, { ok: true });
+  }
+
+  const cdnBase = (process.env.BUNNY_CDN_BASE || 'https://radioamble-cdn.b-cdn.net').replace(/\/$/, '');
+
+  let config;
+  try {
+    config = cleanConfig(body, cdnBase);
+  } catch (e) {
+    return json(400, { error: (e as Error).message });
+  }
+
+  const text = JSON.stringify(config, null, 2);
+  try {
+    // Copia di sicurezza datata, poi il file pubblico
+    const stamp = config.updatedAt.replace(/[:.]/g, '-');
+    await putFile(`config/backup/homepage-${stamp}.json`, text);
+    await putFile(CONFIG_PATH, text);
+  } catch (e) {
+    return json(502, { error: (e as Error).message });
+  }
+
+  const purged = await purge(`${cdnBase}/${CONFIG_PATH}`).catch(() => false);
+
+  return json(200, { ok: true, purged, config });
+}
+
+----- FINE FILE: api/homepage.ts -----

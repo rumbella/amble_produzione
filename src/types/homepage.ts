@@ -30,7 +30,35 @@ export interface HomepageConfig {
   imageDuration: number;
   /** Scurimento sopra lo sfondo, da 0 a 0.9 */
   overlay: number;
+  /** Sponsor mostrato nel player della homepage (se assente: Disclaimer, come oggi) */
+  sponsor?: HomeSponsor;
 }
+
+export interface HomeSponsor {
+  /** false = il player non mostra nessuno sponsor */
+  enabled: boolean;
+  /** Testo piccolo sopra il logo, es. "sponsored by" */
+  label: string;
+  /** Nome dello sponsor (testo alternativo del logo e tooltip) */
+  name: string;
+  /** Logo su Bunny, meglio PNG/SVG trasparente e chiaro (il player è scuro) */
+  logoUrl: string;
+  /** Sito dello sponsor (facoltativo) */
+  link?: string;
+  /** Dimensione del logo, da 0.5 a 2 (1 = standard) */
+  scale: number;
+}
+
+export const DEFAULT_SPONSOR: HomeSponsor = {
+  enabled: true,
+  label: 'sponsored by',
+  name: 'Disclaimer Official',
+  logoUrl:
+    'https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/Screenshot_2026-06-15_11.39.16-removebg-preview.png',
+  link: 'https://disclaimerofficial.com/',
+  // il PNG Disclaimer ha molto margine trasparente: leggermente più grande
+  scale: 1.3,
+};
 
 export const CDN_BASE = 'https://radioamble-cdn.b-cdn.net';
 export const HOMEPAGE_CONFIG_URL = `${CDN_BASE}/config/homepage.json`;
@@ -60,5 +88,6 @@ export function isHomepageConfig(value: unknown): value is HomepageConfig {
   if (v.image !== undefined && !isItem(v.image)) return false;
   if (v.video !== undefined && !isItem(v.video)) return false;
   if (!Array.isArray(v.slides) || !v.slides.every(isItem)) return false;
+  if (v.sponsor !== undefined && (typeof v.sponsor !== 'object' || typeof v.sponsor.logoUrl !== 'string')) return false;
   return activeItems(v).length > 0;
 }

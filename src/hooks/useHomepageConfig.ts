@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HOMEPAGE_CONFIG_URL, HomepageConfig, isHomepageConfig } from '../types/homepage';
+import { DEFAULT_SPONSOR, HOMEPAGE_CONFIG_URL, HomepageConfig, isHomepageConfig } from '../types/homepage';
 
 const LOCAL_KEY = 'ra_homepage_config';
 
@@ -22,6 +22,7 @@ export const FALLBACK_CONFIG: HomepageConfig = {
   slides: FALLBACK_IMAGES.map((url, i) => ({ id: `fallback-${i}`, type: 'image', url })),
   imageDuration: 10,
   overlay: 0.55,
+  sponsor: DEFAULT_SPONSOR,
 };
 
 function readLocal(): HomepageConfig | null {

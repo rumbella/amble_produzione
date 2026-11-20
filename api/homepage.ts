@@ -1,7 +1,8 @@
-// Vercel Function: salva la configurazione della homepage su Bunny Storage.
+// Salva la configurazione della homepage (sfondo + sponsor del player) su Bunny Storage.
+// Su Netlify la usa netlify/functions/homepage.mts; su Vercel funziona da sola come /api/homepage.
 // La chiave di Bunny resta qui sul server, mai nel browser.
 //
-// Variabili d'ambiente da impostare su Vercel (Settings > Environment Variables):
+// Variabili d'ambiente (Netlify: Site configuration > Environment variables · Vercel: Settings > Environment Variables):
 //   ADMIN_PASSWORD        password per entrare in /admin
 //   BUNNY_STORAGE_ZONE    nome della storage zone (es. radioamble)
 //   BUNNY_STORAGE_KEY     password della storage zone (Storage > FTP & API Access)
@@ -77,6 +78,26 @@ function cleanConfig(input: unknown, cdnBase: string) {
   if (mode === 'video' && !video) throw new Error('Modalità video: inserisci il link del video');
   if (mode === 'slideshow' && slides.length === 0) throw new Error('Slideshow: aggiungi almeno un elemento');
 
+  // Sponsor del player
+  let sponsor: Record<string, unknown> | undefined;
+  if (raw.sponsor && typeof raw.sponsor === 'object') {
+    const sp = raw.sponsor as Record<string, unknown>;
+    const enabled = sp.enabled !== false;
+    const logoUrl = typeof sp.logoUrl === 'string' ? sp.logoUrl : '';
+    if (enabled && !isBunny(logoUrl)) throw new Error(`Sponsor: il logo deve essere un link Bunny (${cdnBase}/…)`);
+    const link = typeof sp.link === 'string' && sp.link.trim() ? sp.link.trim() : undefined;
+    if (link && !/^https:\/\/[^\s]+$/.test(link)) throw new Error('Sponsor: il link deve iniziare con https://');
+    const scale = Number(sp.scale ?? 1);
+    sponsor = {
+      enabled,
+      label: typeof sp.label === 'string' ? sp.label.slice(0, 40) : '',
+      name: typeof sp.name === 'string' ? sp.name.slice(0, 60) : '',
+      logoUrl,
+      ...(link ? { link: link.slice(0, 300) } : {}),
+      scale: Number.isFinite(scale) ? Math.min(Math.max(scale, 0.5), 2) : 1,
+    };
+  }
+
   const imageDuration = Number(raw.imageDuration ?? 10);
   const overlay = Number(raw.overlay ?? 0.55);
 
@@ -89,6 +110,7 @@ function cleanConfig(input: unknown, cdnBase: string) {
     slides,
     imageDuration: Number.isFinite(imageDuration) ? Math.min(Math.max(imageDuration, 3), 120) : 10,
     overlay: Number.isFinite(overlay) ? Math.min(Math.max(overlay, 0), 0.9) : 0.55,
+    ...(sponsor ? { sponsor } : {}),
   };
 }
 
@@ -116,10 +138,12 @@ async function purge(url: string) {
   return res.ok;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
+  if (request.method !== 'POST') return json(405, { error: 'Usa POST' });
+
   const { ADMIN_PASSWORD, BUNNY_STORAGE_ZONE, BUNNY_STORAGE_KEY } = process.env;
   if (!ADMIN_PASSWORD || !BUNNY_STORAGE_ZONE || !BUNNY_STORAGE_KEY) {
-    return json(500, { error: 'Variabili ambiente mancanti su Vercel' });
+    return json(500, { error: 'Variabili d’ambiente mancanti sul server' });
   }
 
   const password = request.headers.get('x-admin-password') || '';

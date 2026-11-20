@@ -26,6 +26,7 @@ import { usePlayerHeightObserver } from './hooks/usePlayerHeightObserver';
 import { useScrollMemory, setPreviousPathname, isRestoringScroll, registerScrollResetListener } from './hooks/useScrollMemory';
 import AdminHome from './pages/AdminHome';
 import { HomeBackground } from './components/HomeBackground';
+import { PlayerSponsor } from './components/PlayerSponsor';
 import { useHomepageConfig } from './hooks/useHomepageConfig';
 import { PageBackground } from './components/PageBackground';
 import { SponsorMarquee } from './components/SponsorMarquee';
@@ -796,25 +797,7 @@ function HomeView() {
           <div 
             className="glass-panel animated-gradient-border w-full px-6 pt-4 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
           >
-            {/* Custom partnership text */}
-            <span className="text-[9px] tracking-wider text-white/40 font-sans mt-1 mb-2">
-              {activeHomeBackground.sponsorName ? `sponsored by ${activeHomeBackground.sponsorName}` : 'sponsored by'}
-            </span>
-
-            <a
-              href="https://disclaimerofficial.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-[-15px] mb-[-12px] sm:mt-[-30px] sm:mb-[-25px] flex flex-col items-center justify-center cursor-pointer transition-transform duration-300 hover:scale-105"
-              title="Visita disclaimerofficial.com"
-            >
-              <img 
-                src="https://radioamble-cdn.b-cdn.net/Phoenix/Disclaimer/Immagini/disclaimer/Screenshot_2026-06-15_11.39.16-removebg-preview.png" 
-                alt="Disclaimer Logo" 
-                className="h-[75px] sm:h-[110px] md:h-[130px] w-auto object-contain select-none pointer-events-none"
-                referrerPolicy="no-referrer"
-              />
-            </a>
+            <PlayerSponsor sponsor={homeConfig.sponsor} />
             
             <p className="font-sans text-[9px] sm:text-[10px] tracking-[0.15em] text-white/70 uppercase mt-1 mb-6">
               radio amblè live
