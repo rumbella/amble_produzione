@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GridItem, FeaturedSlot } from '../types';
+import type { NowPlaying } from './MiniPlayer';
 import ContentCard from './ContentCard';
 import FullWidthFeaturedSlot from './FullWidthFeaturedSlot';
 import TracklistFeaturedSlot from './TracklistFeaturedSlot';
@@ -13,7 +14,7 @@ export interface ContentGridProps {
   onActionClick?: (item: GridItem | FeaturedSlot, actionType: string) => void;
   onCardClick?: (item: GridItem) => void;
   isPlaying?: boolean;
-  togglePlay?: (url: string) => void;
+  togglePlay?: (url: string, meta?: NowPlaying) => void;
   currentTrackUrl?: string | null;
   spotlightTracks?: any[];
 }

@@ -1,11 +1,12 @@
 import React from 'react';
 import { FeaturedSlot } from '../types';
 import { usePlayer } from '../contexts/PlayerContext';
+import type { NowPlaying } from './MiniPlayer';
 
 export interface TracklistFeaturedSlotProps {
   slot: FeaturedSlot;
   isPlaying?: boolean;
-  togglePlay?: (url: string) => void;
+  togglePlay?: (url: string, meta?: NowPlaying) => void;
   currentTrackUrl?: string | null;
 }
 
@@ -80,7 +81,7 @@ export function TracklistFeaturedSlot({
           return (
             <div
               key={i}
-              onClick={() => togglePlay?.(trackAudio)}
+              onClick={() => togglePlay?.(trackAudio, { title: track.title, subtitle: (track as any).artist || (track as any).author || slot.title, image: trackImage })}
               className={`flex items-center justify-between p-3 rounded-2xl border transition-all duration-300 group cursor-pointer ${
                 isCurrent 
                   ? 'border-white/20 bg-white/[0.06] shadow-[0_4px_20px_rgba(255,46,85,0.15)]' 

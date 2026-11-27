@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, Heart, MoreHorizontal, Share2, Link2 } from 'lucide-react';
 import { Song } from '../types';
 import { usePlayer } from '../contexts/PlayerContext';
+import type { NowPlaying } from './MiniPlayer';
 
 export interface SongRowItemProps {
   key?: any;
@@ -13,7 +14,7 @@ export interface SongRowItemProps {
   playlistType: 'musiktalk' | 'podcast' | 'djset' | 'playlist' | string;
   isPlaying?: boolean;
   currentTrackUrl?: string | null;
-  onPlayToggle?: (url: string) => void;
+  onPlayToggle?: (url: string, meta?: NowPlaying) => void;
   userLikes?: string[];
   onLikeToggle?: (id: string) => void;
   playlistImage?: string;
@@ -67,7 +68,15 @@ export function SongRowItem({
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onPlayToggle(song.audioUrl);
+    const href = playlistType === 'musiktalk'
+      ? `/programmi/musik-talk/${song.id}`
+      : `/${playlistType}/${playlistId}/song/${index}`;
+    onPlayToggle(song.audioUrl, {
+      title: song.title,
+      subtitle: song.author || author,
+      image: thumbUrl,
+      href,
+    });
   };
 
   const handleLikeClick = (e: React.MouseEvent) => {

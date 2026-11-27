@@ -12,6 +12,14 @@
   --safe-area-top: env(safe-area-inset-top, 0px);
   /* Compact header and page content spacing */
   --header-safe-pt: calc(env(safe-area-inset-top, 0px) + 10px);
+  /* MiniPlayer bottom offset above mobile nav */
+  --bottom-nav-h: 76px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --bottom-nav-h: 8px;
+  }
 }
 
 @theme {
@@ -208,4 +216,16 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+.has-mini-player .overflow-y-auto {
+  padding-bottom: calc(var(--mini-pad, 0px) + 80px);
+}
+
+.home-main {
+  transition: padding-bottom 0.25s ease-out;
+}
+.has-mini-player .home-main {
+  padding-bottom: 76px;
+}
+
 

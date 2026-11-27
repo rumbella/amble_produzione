@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import { motion } from 'motion/react';
 import { SkipBack, SkipForward, Heart, Share2 } from 'lucide-react';
 import { MUSIC_PLAYLISTS, getPlaylistSongs } from '../data/podcasts';
@@ -10,12 +10,15 @@ import { usePlayerHeightObserver } from '../hooks/usePlayerHeightObserver';
 import { PageBackground } from '../components/PageBackground';
 import { SponsorMarquee } from '../components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal';
+import { useSwipe } from '../hooks/useSwipe';
+import { useHeartBurst } from '../components/HeartBurst';
 
 export function SingleSongView() {
   const { isPlaying, isLoading, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
   
   const sIndex = Number(songIndex);
@@ -25,41 +28,88 @@ export function SingleSongView() {
   const sponsor = song?.sponsor || playlist?.sponsor;
   const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
 
-  if (!playlist || !song) return null;
-
-  const songAudio = song.audioUrl;
-  const itemId = `playlist_song:${playlist.id}:${songIndex}`;
+  const songAudio = song?.audioUrl ?? '';
+  const itemId = playlist ? `playlist_song:${playlist.id}:${songIndex}` : '';
   const isLiked = userLikes?.includes(itemId) || false;
   const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
   const trackIsLoading = isLoading && currentTrackUrl === songAudio;
 
+  const songMeta = song && playlist ? {
+    title: song.title,
+    subtitle: song.author || song.artist || playlist.title,
+    image: song.imageUrl || playlist.imageUrl,
+    href: location.pathname,
+  } : undefined;
+
   const goToPrev = () => {
-    if (sIndex > 0) {
+    if (playlist && sIndex > 0) {
       const prevSong = songs[sIndex - 1];
-      playTrack(prevSong.audioUrl);
-      navigate(`/playlist/${playlist.id}/song/${sIndex - 1}`, { replace: true });
+      const prevHref = `/playlist/${playlist.id}/song/${sIndex - 1}`;
+      playTrack(prevSong.audioUrl, {
+        title: prevSong.title,
+        subtitle: prevSong.author || prevSong.artist || playlist.title,
+        image: prevSong.imageUrl || playlist.imageUrl,
+        href: prevHref,
+      });
+      navigate(prevHref, { replace: true });
     }
   };
 
   const goToNext = () => {
-    if (sIndex < songs.length - 1) {
+    if (playlist && sIndex < songs.length - 1) {
       const nextSong = songs[sIndex + 1];
-      playTrack(nextSong.audioUrl);
-      navigate(`/playlist/${playlist.id}/song/${sIndex + 1}`, { replace: true });
+      const nextHref = `/playlist/${playlist.id}/song/${sIndex + 1}`;
+      playTrack(nextSong.audioUrl, {
+        title: nextSong.title,
+        subtitle: nextSong.author || nextSong.artist || playlist.title,
+        image: nextSong.imageUrl || playlist.imageUrl,
+        href: nextHref,
+      });
+      navigate(nextHref, { replace: true });
     }
   };
 
+  const share = () => {
+    if (!song || !playlist) return;
+    if (navigator.share) {
+      navigator.share({ title: `${song.title} - ${playlist.title}`, url: window.location.href })
+        .catch(e => {
+          if (e.name !== 'AbortError') console.error("Share failed", e);
+        });
+    } else if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(window.location.href).catch(() => {});
+    }
+  };
+
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const heart = useHeartBurst();
+  const pageSwipeRef = useSwipe<HTMLElement>({
+    onSwipe: (d) => {
+      if (d === 'left') goToNext();
+      if (d === 'right') goToPrev();
+    },
+    onDoubleTap: (x, y) => {
+      if (itemId && !isLiked) toggleLike(itemId);
+      heart.show(x, y);
+    },
+  }, isTouch);
+  const playerSwipeRef = useSwipe<HTMLDivElement>({ onLongPress: share }, isTouch);
+
   useEffect(() => {
-    if (currentTrackUrl !== songAudio) {
-      playTrack(songAudio);
+    if (songAudio && currentTrackUrl !== songAudio) {
+      playTrack(songAudio, songMeta);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songAudio]);
 
+  if (!playlist || !song) return null;
+
   return (
     <motion.main
+      ref={pageSwipeRef}
       className="relative z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
+      {heart.layer}
       {/* Level 3: Scoped Full-Page Background */}
       <PageBackground 
         type={sponsor ? sponsor.backgroundType : song?.imageUrl || playlist?.imageUrl ? 'image' : 'neutral'}
@@ -93,6 +143,7 @@ export function SingleSongView() {
         <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
           <PlayerTicker />
           <div 
+            ref={playerSwipeRef}
             className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
           >
           <h2 className="font-space text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
@@ -122,7 +173,7 @@ export function SingleSongView() {
               </button>
 
               <button 
-                onClick={() => togglePlay(songAudio)}
+                onClick={() => togglePlay(songAudio, songMeta)}
                 className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying && !trackIsLoading ? 'play-pulse' : ''}`}
                 aria-label={trackIsLoading ? "Connessione in corso" : trackIsPlaying ? "Pause" : "Play"}
               >
@@ -141,14 +192,7 @@ export function SingleSongView() {
             <button 
               className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
               aria-label="Share"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: `${song.title} - ${playlist.title}`, url: window.location.href })
-                    .catch(e => {
-                      if (e.name !== 'AbortError') console.error("Share failed", e);
-                    });
-                }
-              }}
+              onClick={share}
             >
               <Share2 size={22} strokeWidth={1} />
             </button>

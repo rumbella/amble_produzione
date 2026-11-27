@@ -3,20 +3,32 @@ import { useNavigate } from 'react-router';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
+import type { NowPlaying } from '../components/MiniPlayer';
+import { useMediaSession } from '../hooks/useMediaSession';
 
 export interface PlayerContextType {
   isPlaying: boolean;
   isLoading: boolean;
   currentTrackUrl: string | null;
-  togglePlay: (trackUrl?: string) => void;
-  playTrack: (trackUrl: string) => void;
+  nowPlaying: NowPlaying | null;
+  setNowPlaying: React.Dispatch<React.SetStateAction<NowPlaying | null>>;
+  togglePlay: (trackUrl?: string, meta?: NowPlaying) => void;
+  playTrack: (trackUrl: string, meta?: NowPlaying) => void;
   pauseTrack: () => void;
+  stop: () => void;
   userLikes: string[];
   toggleLike: (itemId: string) => Promise<void>;
   streamUrl: string;
 }
 
 const STREAM_URL = "https://mqugxowc-lbmedia.radioca.st/stream";
+
+const LIVE_META: NowPlaying = {
+  title: 'Radio Amblè Live',
+  subtitle: 'In diretta dall’Amblè',
+  image: 'https://radioamble-cdn.b-cdn.net/logo_radioamble.png',
+  href: '/',
+};
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
@@ -27,6 +39,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTrackUrl, setCurrentTrackUrl] = useState<string | null>(null);
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null);
   const [userLikes, setUserLikes] = useState<string[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playAttemptRef = useRef(0);
@@ -64,9 +77,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     fetchUserLikes();
   }, [user]);
 
-  const playTrack = (trackUrl: string) => {
+  const playTrack = (trackUrl: string, meta?: NowPlaying) => {
     if (!audioRef.current) return;
     if (isLoading && currentTrackUrl === trackUrl) return;
+    if (meta) setNowPlaying(meta);
+    else if (trackUrl === STREAM_URL) setNowPlaying(LIVE_META);
     const attemptId = ++playAttemptRef.current;
     if (currentTrackUrl !== trackUrl || trackUrl === STREAM_URL) {
       if (trackUrl === STREAM_URL) {
@@ -104,16 +119,40 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   };
 
-  const togglePlay = (trackUrl: string = STREAM_URL) => {
+  const stop = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+    }
+    setIsPlaying(false);
+    setIsLoading(false);
+    setCurrentTrackUrl(null);
+    setNowPlaying(null);
+  };
+
+  const togglePlay = (trackUrl: string = STREAM_URL, meta?: NowPlaying) => {
     if (!audioRef.current) return;
 
     if (isPlaying && currentTrackUrl === trackUrl) {
       pauseTrack();
     } else {
       if (isLoading && currentTrackUrl === trackUrl) return;
-      playTrack(trackUrl);
+      playTrack(trackUrl, meta);
     }
   };
+
+  useMediaSession({
+    meta: nowPlaying,
+    playing: isPlaying,
+    isLive: currentTrackUrl === STREAM_URL,
+    onPlay: () => {
+      if (currentTrackUrl) playTrack(currentTrackUrl, nowPlaying ?? undefined);
+      else togglePlay();
+    },
+    onPause: pauseTrack,
+    onStop: stop,
+  });
 
   const toggleLike = async (itemId: string) => {
     if (!user) {
@@ -146,9 +185,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isPlaying,
         isLoading,
         currentTrackUrl,
+        nowPlaying,
+        setNowPlaying,
         togglePlay,
         playTrack,
         pauseTrack,
+        stop,
         userLikes,
         toggleLike,
         streamUrl: STREAM_URL,

@@ -4,13 +4,14 @@ import { Heart, Share2, ChevronLeft, ChevronRight, ListMusic } from 'lucide-reac
 import { Song, PlaylistItem } from '../types';
 import { usePlayer } from '../contexts/PlayerContext';
 import { PlayButtonIcon } from './PlayButtonIcon';
+import type { NowPlaying } from './MiniPlayer';
 
 export interface DjSetStackSwipeProps {
   songsList: Song[];
   playlist: PlaylistItem;
   isPlaying?: boolean;
   currentTrackUrl?: string | null;
-  onPlayToggle?: (url: string) => void;
+  onPlayToggle?: (url: string, meta?: NowPlaying) => void;
   userLikes?: string[];
   onLikeToggle?: (id: string) => void;
   onOpenSheet: () => void;
@@ -61,7 +62,7 @@ export function DjSetStackSwipe({
   const isListLoading = isLoading && listHasCurrent;
 
   return (
-    <div className="flex flex-col items-center justify-center py-6 w-full max-w-[400px] mx-auto select-none">
+    <div data-no-swipe className="flex flex-col items-center justify-center py-6 w-full max-w-[400px] mx-auto select-none">
       {/* The Stack Container */}
       <div className="relative w-full aspect-[4/5] h-[340px] sm:h-[400px] flex items-center justify-center">
         {/* Render bottom cards first so they appear behind the top card */}
@@ -142,7 +143,12 @@ export function DjSetStackSwipe({
                           if (isListPlaying && currentTrackUrl) {
                             onPlayToggle(currentTrackUrl);
                           } else {
-                            onPlayToggle(song.audioUrl);
+                            onPlayToggle(song.audioUrl, {
+                              title: song.title,
+                              subtitle: playlist.title,
+                              image: song.imageUrl || trackCover || playlist.imageUrl,
+                              href: `/djset/${playlist.id}/song/${index}`,
+                            });
                           }
                         }}
                         aria-label={isListLoading ? "Connessione in corso" : isListPlaying ? "Pause" : "Play"}
@@ -251,7 +257,12 @@ export function DjSetStackSwipe({
 
           {/* Core play controller */}
           <button
-            onClick={() => onPlayToggle(topSong?.audioUrl)}
+            onClick={() => onPlayToggle(topSong?.audioUrl, topSong ? {
+              title: topSong.title,
+              subtitle: playlist.title,
+              image: topSong.imageUrl || trackCovers[currentIndex % trackCovers.length] || playlist.imageUrl,
+              href: `/djset/${playlist.id}/song/${currentIndex}`,
+            } : undefined)}
             className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(255,255,255,0.25)]"
             aria-label={isTopLoading ? "Connessione in corso" : "Play/Pause"}
           >

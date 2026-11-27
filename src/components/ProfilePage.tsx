@@ -18,6 +18,7 @@ import {
 import { DJSET_ITEMS, MOCK_SONGS, getDjSetSongs } from '../data/djsets';
 import { MUSIC_PLAYLISTS, PODCAST_ITEMS } from '../data/podcasts';
 import { usePlayer } from '../contexts/PlayerContext';
+import { InstallButton } from './InstallApp';
 
 // Beautiful selection of music avatars for quick signups and guest accounts
 const PRESET_AVATARS = [
@@ -526,6 +527,7 @@ export function ProfilePage({ userLikes: propUserLikes, toggleLike: propToggleLi
           </motion.div>
         )}
 
+        <InstallButton className="w-full mt-4" />
       </div>
     </div>
   );

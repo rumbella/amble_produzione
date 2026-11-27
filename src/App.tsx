@@ -32,6 +32,10 @@ import type { HomepageConfig } from './types/homepage';
 import { PageBackground } from './components/PageBackground';
 import { SponsorMarquee } from './components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from './components/SponsorSpotModal';
+import { useSwipe, SwipeDir } from './hooks/useSwipe';
+import { useHeartBurst } from './components/HeartBurst';
+import { MiniPlayer } from './components/MiniPlayer';
+import { InstallBanner } from './components/InstallApp';
 
 // ==========================================
 // VIEW IMPORTS (From src/views/)
@@ -567,7 +571,12 @@ function MusikTalkView() {
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                 <button 
-                  onClick={() => togglePlay(MUSIK_TALK_EPISODES[0]?.audioUrl)}
+                  onClick={() => togglePlay(MUSIK_TALK_EPISODES[0]?.audioUrl, MUSIK_TALK_EPISODES[0] ? {
+                    title: MUSIK_TALK_EPISODES[0].title,
+                    subtitle: 'Musik & Talk',
+                    image: MUSIK_TALK_EPISODES[0].imageUrl || bgUrl,
+                    href: `/programmi/musik-talk/${MUSIK_TALK_EPISODES[0].id}`,
+                  } : undefined)}
                   className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${listIsPlaying && !listIsLoading ? 'play-pulse' : ''}`}
                   aria-label={listIsLoading ? "Connessione in corso" : listIsPlaying ? "Pausa" : "Ascolta"}
                 >
@@ -618,6 +627,7 @@ function SingleMusikTalkEpisodeView() {
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const epIndex = MUSIK_TALK_EPISODES.findIndex(ep => ep.id === Number(id));
   const ep = MUSIK_TALK_EPISODES[epIndex];
@@ -625,41 +635,89 @@ function SingleMusikTalkEpisodeView() {
   const sponsor = ep?.sponsor;
   const { isOpen: isSpotOpen, openSpot, closeSpot } = useSponsorSpot(sponsor);
 
-  if (!ep) return null;
-
-  const bgUrl = ep.imageUrl;
-  const itemId = `musiktalk_ep:${ep.id}`;
+  const bgUrl = ep?.imageUrl;
+  const itemId = ep ? `musiktalk_ep:${ep.id}` : '';
   const isLiked = userLikes?.includes(itemId) || false;
-  const trackIsPlaying = isPlaying && currentTrackUrl === ep.audioUrl;
-  const trackIsLoading = isLoading && currentTrackUrl === ep.audioUrl;
+  const epAudio = ep?.audioUrl ?? '';
+  const trackIsPlaying = isPlaying && currentTrackUrl === epAudio;
+  const trackIsLoading = isLoading && currentTrackUrl === epAudio;
+
+  const epMeta = ep ? {
+    title: ep.title,
+    subtitle: ep.author || 'Musik & Talk',
+    image: bgUrl,
+    href: location.pathname,
+  } : undefined;
 
   const goToPrev = () => {
     if (epIndex > 0) {
       const prevEp = MUSIK_TALK_EPISODES[epIndex - 1];
-      playTrack(prevEp.audioUrl);
-      navigate(`/programmi/musik-talk/${prevEp.id}`, { replace: true });
+      const prevHref = `/programmi/musik-talk/${prevEp.id}`;
+      playTrack(prevEp.audioUrl, {
+        title: prevEp.title,
+        subtitle: prevEp.author || 'Musik & Talk',
+        image: prevEp.imageUrl,
+        href: prevHref,
+      });
+      navigate(prevHref, { replace: true });
     }
   };
 
   const goToNext = () => {
     if (epIndex < MUSIK_TALK_EPISODES.length - 1) {
       const nextEp = MUSIK_TALK_EPISODES[epIndex + 1];
-      playTrack(nextEp.audioUrl);
-      navigate(`/programmi/musik-talk/${nextEp.id}`, { replace: true });
+      const nextHref = `/programmi/musik-talk/${nextEp.id}`;
+      playTrack(nextEp.audioUrl, {
+        title: nextEp.title,
+        subtitle: nextEp.author || 'Musik & Talk',
+        image: nextEp.imageUrl,
+        href: nextHref,
+      });
+      navigate(nextHref, { replace: true });
     }
   };
 
+  const share = () => {
+    if (!ep) return;
+    if (navigator.share) {
+      navigator.share({ title: ep.title, url: window.location.href })
+        .catch(e => {
+          if (e.name !== 'AbortError') console.error("Share failed", e);
+        });
+    } else if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(window.location.href).catch(() => {});
+    }
+  };
+
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const heart = useHeartBurst();
+  const pageSwipeRef = useSwipe<HTMLElement>({
+    onSwipe: (d) => {
+      if (d === 'left') goToNext();
+      if (d === 'right') goToPrev();
+    },
+    onDoubleTap: (x, y) => {
+      if (itemId && !isLiked) toggleLike(itemId);
+      heart.show(x, y);
+    },
+  }, isTouch);
+  const playerSwipeRef = useSwipe<HTMLDivElement>({ onLongPress: share }, isTouch);
+
   useEffect(() => {
-    if (currentTrackUrl !== ep.audioUrl) {
-      playTrack(ep.audioUrl);
+    if (epAudio && currentTrackUrl !== epAudio) {
+      playTrack(epAudio, epMeta);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ep.audioUrl]);
+  }, [epAudio]);
+
+  if (!ep) return null;
 
   return (
     <motion.main
+      ref={pageSwipeRef}
       className="relative z-30 w-full h-full min-h-full bg-[#0a0a0a] overflow-hidden"
     >
+      {heart.layer}
       {/* Level 3: Scoped Full-Page Background */}
       <PageBackground 
         type={sponsor ? sponsor.backgroundType : bgUrl ? 'image' : 'neutral'}
@@ -693,6 +751,7 @@ function SingleMusikTalkEpisodeView() {
         <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
           <PlayerTicker />
           <div 
+            ref={playerSwipeRef}
             className="glass-panel animated-gradient-border w-full px-6 py-4 sm:py-6 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl rounded-3xl"
           >
             <h2 className="font-space text-[20px] sm:text-[24px] text-white tracking-widest leading-none mb-1">
@@ -722,7 +781,7 @@ function SingleMusikTalkEpisodeView() {
                 </button>
 
                 <button 
-                  onClick={() => togglePlay(ep.audioUrl)}
+                  onClick={() => togglePlay(ep.audioUrl, epMeta)}
                   className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying && !trackIsLoading ? 'play-pulse' : ''}`}
                   aria-label={trackIsLoading ? "Connessione in corso" : trackIsPlaying ? "Pause" : "Play"}
                 >
@@ -741,14 +800,7 @@ function SingleMusikTalkEpisodeView() {
               <button 
                 className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
                 aria-label="Share"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({ title: ep.title, url: window.location.href })
-                      .catch(e => {
-                        if (e.name !== 'AbortError') console.error("Share failed", e);
-                      });
-                  }
-                }}
+                onClick={share}
               >
                 <Share2 size={22} strokeWidth={1} />
               </button>
@@ -768,16 +820,40 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
   const isStreamPlaying = isPlaying && (currentTrackUrl === streamUrl || currentTrackUrl === null);
   const isStreamLoading = isLoading && (currentTrackUrl === streamUrl || currentTrackUrl === null);
 
+  const share = () => {
+    if (navigator.share) {
+      navigator.share({ title: 'Radio Amblè Live', url: window.location.href })
+        .catch(e => {
+          if (e.name !== 'AbortError') console.error("Share failed", e);
+        });
+    } else if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(window.location.href).catch(() => {});
+    }
+  };
+
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const heart = useHeartBurst();
+  const pageSwipeRef = useSwipe<HTMLElement>({
+    onDoubleTap: (x, y) => {
+      if (!isLiked) toggleLike(itemId);
+      heart.show(x, y);
+    },
+  }, isTouch);
+  const playerSwipeRef = useSwipe<HTMLDivElement>({ onLongPress: share }, isTouch);
+
   return (
     <motion.main
-      className="relative z-10 w-full h-full flex flex-col items-center overflow-hidden bg-transparent"
+      ref={pageSwipeRef}
+      className="home-main relative z-10 w-full h-full flex flex-col items-center overflow-hidden bg-transparent"
     >
+      {heart.layer}
       {/* The Player Box in normal flex flow */}
       <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end pt-16 sm:pt-20 pb-2 md:pb-6 px-6 overflow-hidden mx-auto pointer-events-auto">
         <div className="flex-1 min-h-[10px]" />
         <div ref={playerCardRef} className="shrink-0 flex flex-col items-center w-full">
           <PlayerTicker />
           <div 
+            ref={playerSwipeRef}
             className="glass-panel animated-gradient-border w-full px-6 pt-4 sm:pt-6 pb-6 sm:pb-8 flex flex-col items-center text-center shrink-0 bg-[#0c0c0e]/45 backdrop-blur-md shadow-2xl"
           >
             <PlayerSponsor sponsor={homeConfig.sponsor} />
@@ -827,14 +903,7 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
               <button 
                 className="p-2 text-white/80 transition-transform hover:scale-110 flex items-center justify-center"
                 aria-label="Share"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({ title: 'Radio Amblè Live', url: window.location.href })
-                      .catch(e => {
-                        if (e.name !== 'AbortError') console.error("Share failed", e);
-                      });
-                  }
-                }}
+                onClick={share}
               >
                 <Share2 size={22} strokeWidth={1} />
               </button>
@@ -849,6 +918,7 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
   function AppContent() {
   useViewportHeight();
   const { user, signIn, logOut } = useAuth();
+  const { nowPlaying, isPlaying, isLoading, currentTrackUrl, togglePlay, stop, streamUrl } = usePlayer();
   const location = useLocation();
   const navigate = useNavigate();
   const homeConfig = useHomepageConfig();
@@ -925,14 +995,21 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
     }
   }, [location.pathname]);
 
+  const SECTIONS = ['/', '/playlist', '/podcast', '/djset', '/programmi'];
   const getDepth = (path: string) => path === '/' ? 0 : path.split('/').filter(Boolean).length;
   const prevPathRef = useRef(location.pathname);
   const directionRef = useRef(1);
 
   if (prevPathRef.current !== location.pathname) {
-    const prevDepth = getDepth(prevPathRef.current);
-    const currDepth = getDepth(location.pathname);
-    directionRef.current = currDepth < prevDepth ? -1 : 1;
+    const prevIdx = SECTIONS.indexOf(prevPathRef.current);
+    const currIdx = SECTIONS.indexOf(location.pathname);
+    if (prevIdx !== -1 && currIdx !== -1) {
+      directionRef.current = currIdx > prevIdx ? 1 : -1;
+    } else {
+      const prevDepth = getDepth(prevPathRef.current);
+      const currDepth = getDepth(location.pathname);
+      directionRef.current = currDepth < prevDepth ? -1 : 1;
+    }
     setPreviousPathname(prevPathRef.current);
     prevPathRef.current = location.pathname;
   }
@@ -967,42 +1044,37 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
     }
   };
 
-  const handleDragEnd = (e: any, info: any) => {
-    // Only detect swipe on mobile
-    if (window.innerWidth >= 768) return;
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const isTrackPage = (p: string) =>
+    p.includes('/song/') || /^\/programmi\/musik-talk\/[^/]+$/.test(p);
 
-    const swipeThreshold = 50;
-    const TABS = ['/', '/playlist', '/podcast', '/djset', '/programmi', '/profile'];
-    const currentPath = location.pathname;
-
-    if (TABS.includes(currentPath)) {
-      if (info.offset.x > swipeThreshold) {
-        // Swipe right -> Go to previous tab
-        const currentIndex = TABS.indexOf(currentPath);
-        const prevIndex = (currentIndex - 1 + TABS.length) % TABS.length;
-        setTimeout(() => {
-          navigate(TABS[prevIndex]);
-        }, 0);
-      } else if (info.offset.x < -swipeThreshold) {
-        // Swipe left -> Go to next tab
-        const currentIndex = TABS.indexOf(currentPath);
-        const nextIndex = (currentIndex + 1) % TABS.length;
-        setTimeout(() => {
-          navigate(TABS[nextIndex]);
-        }, 0);
-      }
-    } else {
-      if (info.offset.x > swipeThreshold) {
-        setTimeout(() => {
-          handleBack();
-        }, 0);
-      }
+  const handleSwipe = (dir: SwipeDir) => {
+    const path = location.pathname;
+    const i = SECTIONS.indexOf(path);
+    if (i !== -1) {
+      if (dir === 'left' && i < SECTIONS.length - 1) navigate(SECTIONS[i + 1]);
+      if (dir === 'right' && i > 0) navigate(SECTIONS[i - 1]);
+      return;
     }
+    if (isTrackPage(path)) {
+      if (dir === 'down') handleBack();
+      return;
+    }
+    if (dir === 'right') handleBack();
   };
+
+  const swipeRef = useSwipe<HTMLDivElement>({ onSwipe: handleSwipe }, isTouch);
+
+  const isLiveOnHome = location.pathname === '/' && (currentTrackUrl === streamUrl || currentTrackUrl === null);
+  const miniVisible = !!nowPlaying && !!currentTrackUrl
+    && location.pathname !== nowPlaying.href
+    && !isLiveOnHome
+    && !location.pathname.startsWith('/admin');
 
   return (
     <div 
-      className="w-full relative overflow-hidden flex flex-col items-center bg-[#0a0a0a]"
+      ref={swipeRef}
+      className={`w-full relative overflow-hidden flex flex-col items-center bg-[#0a0a0a] touch-manipulation ${miniVisible ? 'has-mini-player' : ''}`}
       style={{ height: 'var(--app-height, 100dvh)' }}
     >
       {/* Level 1: Full-screen homepage background at all viewport widths */}
@@ -1176,10 +1248,6 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
             exit="exit"
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0 w-full h-full flex flex-col items-center shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
-            drag={window.innerWidth < 768 ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={handleDragEnd}
           >
             <Routes location={location}>
               <Route path="/" element={<HomeView homeConfig={homeConfig} />} />
@@ -1306,6 +1374,21 @@ function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
           </button>
         </div>
       </nav>
+
+      <MiniPlayer
+        visible={miniVisible}
+        meta={nowPlaying}
+        playing={isPlaying}
+        loading={isLoading}
+        onToggle={() => {
+          if (!currentTrackUrl) return;
+          const url = currentTrackUrl.startsWith(streamUrl) ? streamUrl : currentTrackUrl;
+          togglePlay(url, nowPlaying ?? undefined);
+        }}
+        onOpen={() => nowPlaying?.href && navigate(nowPlaying.href)}
+        onClose={stop}
+      />
+      {!location.pathname.startsWith('/admin') && <InstallBanner />}
     </div>
   );
 }

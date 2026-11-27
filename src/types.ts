@@ -1,6 +1,7 @@
 /**
  * Centralized Type Definitions for Radio Amblè Application
  */
+import type { NowPlaying } from './components/MiniPlayer';
 
 // ==========================================
 // SPONSORSHIP & BACKGROUND SYSTEM TYPES
@@ -118,7 +119,7 @@ export interface ContentGridProps {
   onActionClick?: (item: GridItem | FeaturedSlot, actionType: string) => void;
   onCardClick?: (item: GridItem) => void;
   isPlaying?: boolean;
-  togglePlay?: (url: string) => void;
+  togglePlay?: (url: string, meta?: NowPlaying) => void;
   currentTrackUrl?: string | null;
   spotlightTracks?: (Song | SpotlightTrack)[];
 }
@@ -149,7 +150,7 @@ export interface DjSetPlaylistDetailSheetProps {
   playlist: PlaylistItem;
   isPlaying?: boolean;
   currentTrackUrl?: string | null;
-  onPlayToggle?: (url: string) => void;
+  onPlayToggle?: (url: string, meta?: NowPlaying) => void;
   userLikes?: string[];
   onLikeToggle?: (id: string) => void;
 }

@@ -103,7 +103,12 @@ export function SingleDjSetView() {
                 {/* Action Buttons Row */}
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                   <button 
-                    onClick={() => togglePlay(songsList[0]?.audioUrl)}
+                    onClick={() => togglePlay(songsList[0]?.audioUrl, songsList[0] ? {
+                      title: songsList[0].title,
+                      subtitle: playlist.title,
+                      image: songsList[0].imageUrl || playlist.imageUrl,
+                      href: `/djset/${playlist.id}/song/0`,
+                    } : undefined)}
                     className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${listIsPlaying && !listIsLoading ? 'play-pulse' : ''}`}
                     aria-label={listIsLoading ? "Connessione in corso" : listIsPlaying ? "Pausa" : "Ascolta"}
                   >

@@ -113,7 +113,7 @@ export function InfiniteCarousel({ items, type, onItemClick }: InfiniteCarouselP
   };
 
   return (
-    <div className="relative group/carousel w-full overflow-visible">
+    <div data-no-swipe className="relative group/carousel w-full overflow-visible">
       {/* Scroll Navigation Overlay - Left (Aligned with the layout boundaries dynamically) */}
       {shouldLoop && (
         <button
