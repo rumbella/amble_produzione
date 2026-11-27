@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Play, Pause, ChevronRight, ListMusic } from 'lucide-react';
+import { ChevronRight, ListMusic } from 'lucide-react';
 import { DJSET_ITEMS, getDjSetSongs } from '../data/djsets';
 import { PageBackground } from '../components/PageBackground';
 import { SponsorMarquee } from '../components/SponsorMarquee';
@@ -9,11 +9,12 @@ import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal
 import SongRowItem from '../components/SongRowItem';
 import DjSetStackSwipe from '../components/DjSetStackSwipe';
 import TracksBottomSheet from '../components/TracksBottomSheet';
+import { PlayButtonIcon } from '../components/PlayButtonIcon';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useScrollMemory } from '../hooks/useScrollMemory';
 
 export function SingleDjSetView() {
-  const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
+  const { isPlaying, isLoading, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
   const { id } = useParams();
   const navigate = useNavigate();
   const playlist = DJSET_ITEMS.find(p => p.id === Number(id));
@@ -26,6 +27,9 @@ export function SingleDjSetView() {
   if (!playlist) return null;
 
   const songsList = getDjSetSongs(playlist.id);
+  const listHasCurrent = songsList.some(s => s.audioUrl === currentTrackUrl);
+  const listIsPlaying = isPlaying && listHasCurrent;
+  const listIsLoading = isLoading && listHasCurrent;
 
   return (
     <motion.main
@@ -100,19 +104,11 @@ export function SingleDjSetView() {
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                   <button 
                     onClick={() => togglePlay(songsList[0]?.audioUrl)}
-                    className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songsList.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
+                    className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${listIsPlaying && !listIsLoading ? 'play-pulse' : ''}`}
+                    aria-label={listIsLoading ? "Connessione in corso" : listIsPlaying ? "Pausa" : "Ascolta"}
                   >
-                    {isPlaying && songsList.some(s => s.audioUrl === currentTrackUrl) ? (
-                      <>
-                        <Pause size={16} className="fill-black text-black" />
-                        <span>PAUSA</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={16} className="ml-0.5 fill-black text-black" />
-                        <span>ASCOLTA</span>
-                      </>
-                    )}
+                    <PlayButtonIcon playing={listIsPlaying} loading={listIsLoading} size={16} />
+                    <span>{listIsPlaying ? 'PAUSA' : 'ASCOLTA'}</span>
                   </button>
                 </div>
               </div>

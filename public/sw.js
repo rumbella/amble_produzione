@@ -34,9 +34,23 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (
+    event.request.headers.has("range") ||
+    event.request.destination === "audio" ||
+    event.request.destination === "video"
+  ) {
+    return;
+  }
+
   try {
     const url = new URL(event.request.url);
     if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return;
+    }
+    if (url.origin !== self.location.origin) {
+      return;
+    }
+    if (url.pathname.startsWith("/api/")) {
       return;
     }
   } catch (err) {

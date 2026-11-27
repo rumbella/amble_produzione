@@ -6,6 +6,7 @@ import { useAuth } from './AuthContext';
 
 export interface PlayerContextType {
   isPlaying: boolean;
+  isLoading: boolean;
   currentTrackUrl: string | null;
   togglePlay: (trackUrl?: string) => void;
   playTrack: (trackUrl: string) => void;
@@ -24,9 +25,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentTrackUrl, setCurrentTrackUrl] = useState<string | null>(null);
   const [userLikes, setUserLikes] = useState<string[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playAttemptRef = useRef(0);
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const timeoutId = window.setTimeout(() => {
+      setIsLoading(false);
+      setIsPlaying(false);
+    }, 20000);
+    return () => window.clearTimeout(timeoutId);
+  }, [isLoading]);
 
   // Fetch user likes from Firestore when user changes
   useEffect(() => {
@@ -54,6 +66,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const playTrack = (trackUrl: string) => {
     if (!audioRef.current) return;
+    if (isLoading && currentTrackUrl === trackUrl) return;
+    const attemptId = ++playAttemptRef.current;
     if (currentTrackUrl !== trackUrl || trackUrl === STREAM_URL) {
       if (trackUrl === STREAM_URL) {
         audioRef.current.src = `${trackUrl}?cb=${Date.now()}`;
@@ -63,11 +77,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
       setCurrentTrackUrl(trackUrl);
     }
+    setIsLoading(true);
     const playPromise = audioRef.current.play();
     if (playPromise !== undefined) {
       playPromise.then(() => {
-        setIsPlaying(true);
+        if (attemptId === playAttemptRef.current) {
+          setIsPlaying(true);
+        }
       }).catch(err => {
+        if (attemptId === playAttemptRef.current) {
+          setIsLoading(false);
+        }
         if (err.name !== 'AbortError' && err.name !== 'NotSupportedError') {
           setIsPlaying(false);
         }
@@ -81,6 +101,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (!audioRef.current) return;
     audioRef.current.pause();
     setIsPlaying(false);
+    setIsLoading(false);
   };
 
   const togglePlay = (trackUrl: string = STREAM_URL) => {
@@ -89,6 +110,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (isPlaying && currentTrackUrl === trackUrl) {
       pauseTrack();
     } else {
+      if (isLoading && currentTrackUrl === trackUrl) return;
       playTrack(trackUrl);
     }
   };
@@ -122,6 +144,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     <PlayerContext.Provider
       value={{
         isPlaying,
+        isLoading,
         currentTrackUrl,
         togglePlay,
         playTrack,
@@ -135,10 +158,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       <audio
         ref={audioRef}
         preload="none"
-        onEnded={() => setIsPlaying(false)}
+        onPlaying={() => { setIsLoading(false); setIsPlaying(true); }}
+        onWaiting={() => setIsLoading(true)}
+        onPause={() => setIsLoading(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          setIsLoading(false);
+        }}
         onError={() => {
           if (!audioRef.current?.src || audioRef.current?.src === window.location.href) return;
           setIsPlaying(false);
+          setIsLoading(false);
         }}
       />
     </PlayerContext.Provider>

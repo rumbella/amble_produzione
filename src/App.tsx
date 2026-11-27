@@ -9,7 +9,6 @@ import { db } from './lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { InfiniteCarousel } from './components/InfiniteCarousel';
 import { ProfilePage } from './components/ProfilePage';
-import { WebGLBackground } from './components/WebGLBackground';
 import { ExploreView } from './components/ExploreView';
 import { ContentGrid, MOCK_FEATURED_SLOTS } from './components/ContentGrid';
 import LongArrowLeft from './components/LongArrowLeft';
@@ -27,11 +26,12 @@ import { useScrollMemory, setPreviousPathname, isRestoringScroll, registerScroll
 import AdminHome from './pages/AdminHome';
 import { HomeBackground } from './components/HomeBackground';
 import { PlayerSponsor } from './components/PlayerSponsor';
+import { PlayButtonIcon } from './components/PlayButtonIcon';
 import { useHomepageConfig } from './hooks/useHomepageConfig';
+import type { HomepageConfig } from './types/homepage';
 import { PageBackground } from './components/PageBackground';
 import { SponsorMarquee } from './components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from './components/SponsorSpotModal';
-import { activeHomeBackground } from './data/sponsors';
 
 // ==========================================
 // VIEW IMPORTS (From src/views/)
@@ -509,10 +509,13 @@ function ProgrammiView() {
 }
 
 function MusikTalkView() {
-  const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
+  const { isPlaying, isLoading, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
   const navigate = useNavigate();
   const [bgUrl] = useState(() => "https://radioamble-cdn.b-cdn.net/Musik%20%26%20Talk/post%20animato%20musik%26talk%20%20(5).jpg");
   const scrollRef = useScrollMemory();
+  const listHasCurrent = MUSIK_TALK_EPISODES.some(s => s.audioUrl === currentTrackUrl);
+  const listIsPlaying = isPlaying && listHasCurrent;
+  const listIsLoading = isLoading && listHasCurrent;
 
   return (
     <motion.main
@@ -565,19 +568,11 @@ function MusikTalkView() {
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                 <button 
                   onClick={() => togglePlay(MUSIK_TALK_EPISODES[0]?.audioUrl)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && MUSIK_TALK_EPISODES.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
+                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${listIsPlaying && !listIsLoading ? 'play-pulse' : ''}`}
+                  aria-label={listIsLoading ? "Connessione in corso" : listIsPlaying ? "Pausa" : "Ascolta"}
                 >
-                  {isPlaying && MUSIK_TALK_EPISODES.some(s => s.audioUrl === currentTrackUrl) ? (
-                    <>
-                      <Pause size={16} className="fill-black text-black" />
-                      <span>PAUSA</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play size={16} className="ml-0.5 fill-black text-black" />
-                      <span>ASCOLTA</span>
-                    </>
-                  )}
+                  <PlayButtonIcon playing={listIsPlaying} loading={listIsLoading} size={16} />
+                  <span>{listIsPlaying ? 'PAUSA' : 'ASCOLTA'}</span>
                 </button>
               </div>
             </div>
@@ -619,7 +614,7 @@ function MusikTalkView() {
 }
 
 function SingleMusikTalkEpisodeView() {
-  const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
+  const { isPlaying, isLoading, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -636,6 +631,7 @@ function SingleMusikTalkEpisodeView() {
   const itemId = `musiktalk_ep:${ep.id}`;
   const isLiked = userLikes?.includes(itemId) || false;
   const trackIsPlaying = isPlaying && currentTrackUrl === ep.audioUrl;
+  const trackIsLoading = isLoading && currentTrackUrl === ep.audioUrl;
 
   const goToPrev = () => {
     if (epIndex > 0) {
@@ -727,14 +723,10 @@ function SingleMusikTalkEpisodeView() {
 
                 <button 
                   onClick={() => togglePlay(ep.audioUrl)}
-                  className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
-                  aria-label={trackIsPlaying ? "Pause" : "Play"}
+                  className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying && !trackIsLoading ? 'play-pulse' : ''}`}
+                  aria-label={trackIsLoading ? "Connessione in corso" : trackIsPlaying ? "Pause" : "Play"}
                 >
-                  {trackIsPlaying ? (
-                    <Pause size={28} strokeWidth={2} className="fill-black" />
-                  ) : (
-                    <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
-                  )}
+                  <PlayButtonIcon playing={trackIsPlaying} loading={trackIsLoading} size={28} />
                 </button>
 
                 <button 
@@ -768,27 +760,18 @@ function SingleMusikTalkEpisodeView() {
   );
 }
 
-function HomeView() {
-  const { isPlaying, userLikes, togglePlay, toggleLike, currentTrackUrl } = usePlayer();
+function HomeView({ homeConfig }: { homeConfig: HomepageConfig }) {
+  const { isPlaying, isLoading, userLikes, togglePlay, toggleLike, currentTrackUrl, streamUrl } = usePlayer();
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
-  const homeConfig = useHomepageConfig();
   const itemId = 'radio-amble-live';
   const isLiked = userLikes?.includes(itemId) || false;
-  const isStreamPlaying = isPlaying && (currentTrackUrl === "https://mqugxowc-lbmedia.radioca.st/stream" || currentTrackUrl === null);
+  const isStreamPlaying = isPlaying && (currentTrackUrl === streamUrl || currentTrackUrl === null);
+  const isStreamLoading = isLoading && (currentTrackUrl === streamUrl || currentTrackUrl === null);
 
   return (
     <motion.main
       className="relative z-10 w-full h-full flex flex-col items-center overflow-hidden bg-transparent"
     >
-      {/* Level 1: Scoped edge-to-edge full page background */}
-      <div
-        className="fixed inset-0 w-full -z-10 pointer-events-none overflow-hidden select-none bg-[#0a0a0a]"
-        style={{ height: 'var(--app-height, 100dvh)' }}
-        aria-hidden="true"
-      >
-        <HomeBackground config={homeConfig} />
-      </div>
-
       {/* The Player Box in normal flex flow */}
       <div className="relative z-10 w-full max-w-[500px] h-full flex flex-col justify-end pt-16 sm:pt-20 pb-2 md:pb-6 px-6 overflow-hidden mx-auto pointer-events-auto">
         <div className="flex-1 min-h-[10px]" />
@@ -835,13 +818,9 @@ function HomeView() {
                 <button 
                   onClick={() => togglePlay()}
                   className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform"
-                  aria-label={isStreamPlaying ? "Pause" : "Play"}
+                  aria-label={isStreamLoading ? "Connessione in corso" : isStreamPlaying ? "Pause" : "Play"}
                 >
-                  {isStreamPlaying ? ( 
-                    <Pause className="w-6 h-6 sm:w-7 sm:h-7 fill-black" strokeWidth={2} /> 
-                  ) : ( 
-                    <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-black" strokeWidth={2} /> 
-                  )}
+                  <PlayButtonIcon playing={isStreamPlaying} loading={isStreamLoading} size={26} />
                 </button>
               </div>
 
@@ -872,6 +851,7 @@ function HomeView() {
   const { user, signIn, logOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const homeConfig = useHomepageConfig();
 
   // Floating Header show/hide on scroll states
   const [showHeader, setShowHeader] = useState(true);
@@ -1025,6 +1005,17 @@ function HomeView() {
       className="w-full relative overflow-hidden flex flex-col items-center bg-[#0a0a0a]"
       style={{ height: 'var(--app-height, 100dvh)' }}
     >
+      {/* Level 1: Full-screen homepage background at all viewport widths */}
+      {isHome && (
+        <div
+          className="fixed inset-0 w-full z-0 pointer-events-none overflow-hidden select-none bg-[#0a0a0a]"
+          style={{ height: 'var(--app-height, 100dvh)' }}
+          aria-hidden="true"
+        >
+          <HomeBackground config={homeConfig} />
+        </div>
+      )}
+
       {/* Desktop Left Sidebar Navigation */}
       <div className="hidden md:flex flex-col items-center justify-between py-8 fixed left-[6px] top-[6px] bottom-[6px] w-[74px] bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] z-50">
         {/* Brand Logo / Top Mark */}
@@ -1191,7 +1182,7 @@ function HomeView() {
             onDragEnd={handleDragEnd}
           >
             <Routes location={location}>
-              <Route path="/" element={<HomeView />} />
+              <Route path="/" element={<HomeView homeConfig={homeConfig} />} />
               <Route path="/playlist" element={<PlaylistView />} />
               <Route path="/playlist/:id" element={<SinglePlaylistView />} />
               <Route path="/playlist/:id/song/:songIndex" element={<SingleSongView />} />

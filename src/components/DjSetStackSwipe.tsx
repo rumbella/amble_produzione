@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Play, Pause, Heart, Share2, ChevronLeft, ChevronRight, ListMusic } from 'lucide-react';
+import { Heart, Share2, ChevronLeft, ChevronRight, ListMusic } from 'lucide-react';
 import { Song, PlaylistItem } from '../types';
 import { usePlayer } from '../contexts/PlayerContext';
+import { PlayButtonIcon } from './PlayButtonIcon';
 
 export interface DjSetStackSwipeProps {
   songsList: Song[];
@@ -27,6 +28,7 @@ export function DjSetStackSwipe({
 }: DjSetStackSwipeProps) {
   const player = usePlayer();
   const isPlaying = propIsPlaying ?? player.isPlaying;
+  const isLoading = player.isLoading;
   const currentTrackUrl = propCurrentTrackUrl ?? player.currentTrackUrl;
   const onPlayToggle = propOnPlayToggle ?? player.togglePlay;
   const userLikes = propUserLikes ?? player.userLikes;
@@ -53,6 +55,10 @@ export function DjSetStackSwipe({
   const topSong = songsList[currentIndex];
   const isTopCurrent = currentTrackUrl === topSong?.audioUrl;
   const isTopPlaying = isPlaying && isTopCurrent;
+  const isTopLoading = isLoading && isTopCurrent;
+  const listHasCurrent = songsList.some((s) => s.audioUrl === currentTrackUrl);
+  const isListPlaying = isPlaying && listHasCurrent;
+  const isListLoading = isLoading && listHasCurrent;
 
   return (
     <div className="flex flex-col items-center justify-center py-6 w-full max-w-[400px] mx-auto select-none">
@@ -133,20 +139,16 @@ export function DjSetStackSwipe({
                         whileTap={{ scale: 0.95 }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          const isPlaylistPlaying = isPlaying && songsList.some((s) => s.audioUrl === currentTrackUrl);
-                          if (isPlaylistPlaying && currentTrackUrl) {
+                          if (isListPlaying && currentTrackUrl) {
                             onPlayToggle(currentTrackUrl);
                           } else {
                             onPlayToggle(song.audioUrl);
                           }
                         }}
+                        aria-label={isListLoading ? "Connessione in corso" : isListPlaying ? "Pause" : "Play"}
                         className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-[0_8px_20px_rgba(255,255,255,0.25)]"
                       >
-                        {isPlaying && songsList.some((s) => s.audioUrl === currentTrackUrl) ? (
-                          <Pause size={24} className="fill-black text-black" />
-                        ) : (
-                          <Play size={24} className="ml-0.5 fill-black text-black" />
-                        )}
+                        <PlayButtonIcon playing={isListPlaying} loading={isListLoading} size={24} />
                       </motion.button>
                     </div>
                   )}
@@ -251,13 +253,9 @@ export function DjSetStackSwipe({
           <button
             onClick={() => onPlayToggle(topSong?.audioUrl)}
             className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_8px_24px_rgba(255,255,255,0.25)]"
-            aria-label="Play/Pause"
+            aria-label={isTopLoading ? "Connessione in corso" : "Play/Pause"}
           >
-            {isTopPlaying ? (
-              <Pause size={26} className="fill-black text-black" />
-            ) : (
-              <Play size={26} className="ml-0.5 fill-black text-black" />
-            )}
+            <PlayButtonIcon playing={isTopPlaying} loading={isTopLoading} size={26} />
           </button>
 
           <button

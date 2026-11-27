@@ -1,17 +1,18 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Play, Pause, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { MUSIC_PLAYLISTS, getPlaylistSongs } from '../data/podcasts';
 import { PageBackground } from '../components/PageBackground';
 import { SponsorMarquee } from '../components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal';
 import SongRowItem from '../components/SongRowItem';
+import { PlayButtonIcon } from '../components/PlayButtonIcon';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useScrollMemory } from '../hooks/useScrollMemory';
 
 export function SinglePlaylistView() {
-  const { isPlaying, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
+  const { isPlaying, isLoading, togglePlay, currentTrackUrl, userLikes, toggleLike } = usePlayer();
   const { id } = useParams();
   const navigate = useNavigate();
   const playlist = MUSIC_PLAYLISTS.find(p => p.id === Number(id));
@@ -23,6 +24,9 @@ export function SinglePlaylistView() {
   if (!playlist) return null;
 
   const songs = getPlaylistSongs(playlist.id);
+  const listHasCurrent = songs.some(s => s.audioUrl === currentTrackUrl);
+  const listIsPlaying = isPlaying && listHasCurrent;
+  const listIsLoading = isLoading && listHasCurrent;
 
   return (
     <motion.main
@@ -96,19 +100,11 @@ export function SinglePlaylistView() {
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
                 <button 
                   onClick={() => togglePlay(songs[0]?.audioUrl)}
-                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${isPlaying && songs.some(s => s.audioUrl === currentTrackUrl) ? 'play-pulse' : ''}`}
+                  className={`h-12 px-6 rounded-full bg-white text-black hover:bg-white/90 flex items-center gap-2 font-bold transition-all hover:scale-105 active:scale-95 shadow-lg text-sm shrink-0 ${listIsPlaying && !listIsLoading ? 'play-pulse' : ''}`}
+                  aria-label={listIsLoading ? "Connessione in corso" : listIsPlaying ? "Pausa" : "Ascolta"}
                 >
-                  {isPlaying && songs.some(s => s.audioUrl === currentTrackUrl) ? (
-                    <>
-                      <Pause size={16} className="fill-black text-black" />
-                      <span>PAUSA</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play size={16} className="ml-0.5 fill-black text-black" />
-                      <span>ASCOLTA</span>
-                    </>
-                  )}
+                  <PlayButtonIcon playing={listIsPlaying} loading={listIsLoading} size={16} />
+                  <span>{listIsPlaying ? 'PAUSA' : 'ASCOLTA'}</span>
                 </button>
               </div>
             </div>

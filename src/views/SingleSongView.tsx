@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Play, Pause, SkipBack, SkipForward, Heart, Share2 } from 'lucide-react';
+import { SkipBack, SkipForward, Heart, Share2 } from 'lucide-react';
 import { MUSIC_PLAYLISTS, getPlaylistSongs } from '../data/podcasts';
 import PlayerTicker from '../components/PlayerTicker';
+import { PlayButtonIcon } from '../components/PlayButtonIcon';
 import { usePlayer } from '../contexts/PlayerContext';
 import { usePlayerHeightObserver } from '../hooks/usePlayerHeightObserver';
 import { PageBackground } from '../components/PageBackground';
@@ -11,7 +12,7 @@ import { SponsorMarquee } from '../components/SponsorMarquee';
 import { SponsorSpotModal, useSponsorSpot } from '../components/SponsorSpotModal';
 
 export function SingleSongView() {
-  const { isPlaying, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
+  const { isPlaying, isLoading, togglePlay, playTrack, userLikes, toggleLike, currentTrackUrl } = usePlayer();
   const playerCardRef = usePlayerHeightObserver<HTMLDivElement>();
   const { id, songIndex } = useParams();
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export function SingleSongView() {
   const itemId = `playlist_song:${playlist.id}:${songIndex}`;
   const isLiked = userLikes?.includes(itemId) || false;
   const trackIsPlaying = isPlaying && currentTrackUrl === songAudio;
+  const trackIsLoading = isLoading && currentTrackUrl === songAudio;
 
   const goToPrev = () => {
     if (sIndex > 0) {
@@ -121,14 +123,10 @@ export function SingleSongView() {
 
               <button 
                 onClick={() => togglePlay(songAudio)}
-                className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying ? 'play-pulse' : ''}`}
-                aria-label={trackIsPlaying ? "Pause" : "Play"}
+                className={`w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform mx-2 ${trackIsPlaying && !trackIsLoading ? 'play-pulse' : ''}`}
+                aria-label={trackIsLoading ? "Connessione in corso" : trackIsPlaying ? "Pause" : "Play"}
               >
-                {trackIsPlaying ? (
-                  <Pause size={28} strokeWidth={2} className="fill-black" />
-                ) : (
-                  <Play size={28} strokeWidth={2} className="ml-1 fill-black" />
-                )}
+                <PlayButtonIcon playing={trackIsPlaying} loading={trackIsLoading} size={28} />
               </button>
 
               <button 
